@@ -1,0 +1,6 @@
+{
+  "name": "CleanQuest: 8-Bit Synthwave",
+  "description": "Gamified 8-bit retro synthwave cleaning productivity quest with body-doubling companions, chiptune visualizer, boss fights, ritual planner, and shareable trophy cards.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

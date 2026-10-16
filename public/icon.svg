@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="96" fill="#0a0015"/>
+  <rect x="24" y="24" width="464" height="464" rx="80" fill="none" stroke="#05d9e8" stroke-width="12"/>
+  <circle cx="256" cy="210" r="130" fill="#fbe54f" opacity="0.9"/>
+  <!-- Sun stripes -->
+  <rect x="126" y="200" width="260" height="12" fill="#0a0015"/>
+  <rect x="126" y="230" width="260" height="16" fill="#0a0015"/>
+  <rect x="126" y="265" width="260" height="22" fill="#0a0015"/>
+  <rect x="126" y="305" width="260" height="28" fill="#0a0015"/>
+  
+  <!-- Perspective Road -->
+  <polygon points="176,340 336,340 480,480 32,480" fill="#120b1e"/>
+  <line x1="256" y1="340" x2="256" y2="480" stroke="#fcff1a" stroke-width="10" stroke-dasharray="24 16"/>
+
+  <!-- Pixelated vacuum cleaner driving on road -->
+  <g transform="translate(196, 330) scale(3)">
+    <!-- Vacuum body -->
+    <rect x="4" y="6" width="32" height="24" rx="6" fill="#05d9e8" stroke="#ff2a6d" stroke-width="2"/>
+    <!-- Cute eye display screen -->
+    <rect x="10" y="10" width="20" height="10" fill="#0a0015" stroke="#fbe54f" stroke-width="1.5"/>
+    <circle cx="16" cy="15" r="2.5" fill="#05d9e8"/>
+    <circle cx="24" cy="15" r="2.5" fill="#05d9e8"/>
+    <rect x="18" y="18" width="4" height="1" fill="#ff2a6d"/>
+    <!-- Chrome nozzle bumper -->
+    <rect x="6" y="26" width="28" height="6" fill="#ff2a6d"/>
+    <!-- Wheels -->
+    <circle cx="8" cy="30" r="4" fill="#fbe54f" stroke="#0a0015" stroke-width="1"/>
+    <circle cx="32" cy="30" r="4" fill="#fbe54f" stroke="#0a0015" stroke-width="1"/>
+    <!-- Sparkle particles -->
+    <polygon points="38,8 41,12 45,12 42,15 43,19 40,16 37,19 38,15 35,12 39,12" fill="#fcff1a"/>
+  </g>
+</svg>

@@ -1,0 +1,297 @@
+@import "tailwindcss";
+
+@theme {
+  --font-pixel: "Press Start 2P", monospace;
+  --font-vt: "VT323", monospace;
+
+  --color-synth-dark: #0a0015;
+  --color-synth-purple: #2d1b4e;
+  --color-synth-magenta: #ff2a6d;
+  --color-synth-cyan: #05d9e8;
+  --color-synth-yellow: #fbe54f;
+  --color-synth-gray: #1a1a24;
+}
+
+body {
+  background-color: #0a0015;
+  color: #e0e0e0;
+  background-image: 
+    linear-gradient(rgba(5, 217, 232, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(5, 217, 232, 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+  position: relative;
+  font-family: var(--font-vt), monospace;
+}
+
+.font-pixel {
+  font-family: var(--font-pixel), monospace;
+}
+
+.font-vt {
+  font-family: var(--font-vt), monospace;
+}
+
+.scanlines {
+  background: linear-gradient(
+    to bottom,
+    rgba(255,255,255,0),
+    rgba(255,255,255,0) 50%,
+    rgba(0,0,0,0.2) 50%,
+    rgba(0,0,0,0.2)
+  );
+  background-size: 100% 4px;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 9999;
+  pointer-events: none;
+  animation: crt-flicker 0.15s infinite;
+}
+
+@keyframes crt-flicker {
+  0% { opacity: 0.94; }
+  50% { opacity: 1; }
+  100% { opacity: 0.97; }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #0a0015; border-left: 2px solid #2d1b4e; }
+::-webkit-scrollbar-thumb { background: #ff2a6d; border: 2px solid #0a0015; }
+::-webkit-scrollbar-thumb:hover { background: #05d9e8; }
+
+.pixel-box {
+  background-color: #1a1a24;
+  border: 4px solid #05d9e8;
+  box-shadow: 6px 6px 0px #ff2a6d;
+  transition: all 0.1s ease-in-out;
+}
+.pixel-box.selectable:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0px #ff2a6d;
+  cursor: pointer;
+}
+.pixel-box.active {
+  border-color: #ff2a6d;
+  box-shadow: 6px 6px 0px #05d9e8;
+  background-color: #2d1b4e;
+}
+
+.pixel-btn {
+  background-color: #ff2a6d;
+  color: #fff;
+  border: 4px solid #fff;
+  box-shadow: 4px 4px 0px #05d9e8;
+  text-shadow: 2px 2px 0px #000;
+  transition: all 0.1s;
+  cursor: pointer;
+}
+.pixel-btn:hover {
+  background-color: #ff5c8d;
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #05d9e8;
+}
+.pixel-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #05d9e8;
+}
+
+.pixel-btn-cyan {
+  background-color: #05d9e8;
+  color: #0a0015;
+  border: 4px solid #fff;
+  box-shadow: 4px 4px 0px #ff2a6d;
+  text-shadow: none;
+  font-weight: bold;
+  transition: all 0.1s;
+  cursor: pointer;
+}
+.pixel-btn-cyan:hover {
+  background-color: #4ce5f1;
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #ff2a6d;
+}
+.pixel-btn-cyan:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #ff2a6d;
+}
+
+.pixel-btn-yellow {
+  background-color: #fbe54f;
+  color: #0a0015;
+  border: 4px solid #fff;
+  box-shadow: 4px 4px 0px #05d9e8;
+  text-shadow: none;
+  font-weight: bold;
+  transition: all 0.1s;
+  cursor: pointer;
+}
+.pixel-btn-yellow:hover {
+  background-color: #ffea70;
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #05d9e8;
+}
+.pixel-btn-yellow:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #05d9e8;
+}
+
+.blink-text { animation: blinker 1s linear infinite; }
+@keyframes blinker { 50% { opacity: 0; } }
+
+.neon-text { 
+  text-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 20px currentColor; 
+}
+
+.neon-border {
+  box-shadow: 0 0 10px #05d9e8, inset 0 0 10px #05d9e8;
+}
+
+/* Synthwave Road & Vacuum Animation Header */
+#synthwave-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  overflow: hidden;
+  background: #000;
+  border: 4px solid #05d9e8;
+  box-shadow: 0 0 15px #ff2a6d, inset 0 0 20px #ff2a6d;
+  border-radius: 8px;
+  padding: 16px 0;
+  position: relative;
+}
+
+#synthwave {
+  position: relative;
+  width: 320px;
+  height: 240px;
+  background-color: #2e0d3f;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+/* Living Vacuum Cleaner Driving on Road */
+.vacuum-cleaner-container {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  z-index: 15;
+  animation: vacuumRide 1.2s infinite ease-in-out alternate;
+}
+
+@keyframes vacuumRide {
+  0% { transform: translateX(-50%) translateY(0px) rotate(-1deg); }
+  50% { transform: translateX(-48%) translateY(-3px) rotate(1deg); }
+  100% { transform: translateX(-52%) translateY(1px) rotate(-1.5deg); }
+}
+
+.wheel-spin {
+  animation: wheelRoll 0.4s linear infinite;
+  transform-origin: center;
+}
+@keyframes wheelRoll {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.cutout-frame {
+  background-color: transparent;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  overflow: hidden;
+  pointer-events: none;
+}
+.cutout-frame::before {
+  content: "";
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 290px; height: 215px;
+  background-color: transparent;
+  border-radius: 12px;
+  box-shadow: 0 0 0 1000px #0a0015;
+}
+
+#synth-sun { 
+  overflow: hidden; 
+  width: 110px; 
+  height: 110px; 
+  position: absolute; 
+  top: 48%; 
+  left: 50%; 
+  transform: translate(-50%, -70%); 
+}
+#synth-ball { 
+  width: 110px; 
+  height: 110px; 
+  border-radius: 50%; 
+  background: linear-gradient(to bottom, #fcff1a, #ff2a6d); 
+  box-shadow: 0 0 25px #ff2a6d;
+}
+
+.sun-stripe {
+  position: absolute;
+  width: 100%;
+  background-color: #2e0d3f;
+  left: 50%;
+  transform: translate(-50%);
+}
+
+#stripe0 { height: 0px; top: 10px; animation: stripe0mov infinite 1s linear; }
+#stripe1 { height: 3px; top: 20px; animation: stripe1mov infinite 1s linear; }
+#stripe2 { height: 4px; top: 31px; animation: stripe2mov infinite 1s linear; }
+#stripe3 { height: 4px; top: 44px; animation: stripe3mov infinite 1s linear; }
+#stripe4 { height: 5px; top: 58px; animation: stripe4mov infinite 1s linear; }
+#stripe5 { height: 8px; top: 75px; animation: stripe5mov infinite 1s linear; }
+#stripe6 { height: 9px; top: 97px; animation: stripe6mov infinite 1s linear; }
+
+@keyframes stripe0mov { 0%, 100% { height: 0px; top: 10px; } 99% { top: 20px; height: 3px; } }
+@keyframes stripe1mov { 0%, 100% { top: 20px; height: 3px; } 99% { top: 31px; height: 4px; } }
+@keyframes stripe2mov { 0%, 100% { top: 31px; height: 4px; } 99% { top: 44px; height: 4px; } }
+@keyframes stripe3mov { 0%, 100% { top: 44px; height: 4px; } 99% { top: 58px; height: 5px; } }
+@keyframes stripe4mov { 0%, 100% { top: 58px; height: 5px; } 99% { top: 75px; height: 8px; } }
+@keyframes stripe5mov { 0%, 100% { top: 75px; height: 8px; } 99% { top: 97px; height: 9px; } }
+@keyframes stripe6mov { 0%, 100% { top: 97px; height: 9px; } 99% { top: 120px; height: 9px; } }
+
+#synth-fog { position: absolute; top: 40px; width: 100%; height: 80%; background-image: linear-gradient(transparent, #b811c6); }
+#synth-fog2 { position: absolute; top: 140px; width: 320px; height: 500px; background-image: linear-gradient(transparent, #b711c63f); transform: rotate(180deg); }
+#synth-land { width: 100%; height: 42%; bottom: 0; position: absolute; background-color: #120b12; }
+
+#roadLines {
+  perspective: 700px; position: absolute; left: 50%; transform: translateX(-50%); bottom: -425px; width: 6px; height: 1000px;
+}
+#lines {
+  transform: rotateX(85deg); transform-origin: center; box-shadow: 0 10px 20px rgba(252, 255, 26, 0.2);
+  display: grid; grid-template-columns: 1fr; grid-template-rows: repeat(8, 1fr); grid-row-gap: 30px; width: 100%; height: 100%;
+}
+.synth-line { border-radius: 20px; background-color: #fcff1a; animation: movingLines infinite 0.5s linear; }
+#line0 { animation: movingLines0 infinite 0.5s linear; }
+
+@keyframes movingLines { 0% { transform: translateY(0px); } 100% { transform: translateY(130px); } }
+@keyframes movingLines0 { 0% { transform: translateY(0px); height: 0%; } 100% { transform: translateY(130px); height: 100%; } }
+
+.retro-modal-overlay {
+  background-color: rgba(10, 0, 21, 0.88);
+  backdrop-filter: blur(4px);
+}
+
+#visualizer-wrapper.is-fullscreen {
+  position: fixed !important; 
+  top: 0 !important; 
+  left: 0 !important; 
+  width: 100vw !important; 
+  height: 100vh !important;
+  z-index: 9999 !important; 
+  display: flex !important; 
+  flex-direction: column !important; 
+  border-radius: 0 !important; 
+  border: none !important;
+  background-color: #0a0015 !important;
+}
+#visualizer-wrapper.is-fullscreen canvas { 
+  flex: 1 !important; 
+  height: 100% !important; 
+  border-radius: 0 !important; 
+}
