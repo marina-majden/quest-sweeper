@@ -37,7 +37,7 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <div className="w-10 h-10 sm:w-11 sm:h-11 bg-synth-gray border-2 sm:border-3 border-synth-cyan flex items-center justify-center shadow-[2px_2px_0_#ff2a6d] overflow-hidden rounded-sm hover:scale-105 transition-transform ">
             <img
-              src="/src/assets/images/logo-mini.png"
+              src="/pwa-192.png"
               alt="CleanQuest Logo"
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
