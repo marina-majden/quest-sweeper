@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { musicEngine, TRACK_LIST, TrackId } from '../utils/soundEngine.ts';
-import { Play, Pause, Maximize2, Minimize2, Volume2, Music, Sparkles } from 'lucide-react';
+import { musicEngine, TRACK_LIST, TrackId, sfx } from '../utils/soundEngine.ts';
+import { Play, Pause, Maximize2, Minimize2, Volume2, Music, Sparkles, X, Disc } from 'lucide-react';
 
 export type VisualizerMode = 'winamp' | 'oscilloscope' | 'starburst';
 
@@ -16,6 +16,7 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = () => {
   const [mode, setMode] = useState<VisualizerMode>('winamp');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [volume, setVolume] = useState(musicEngine.volume);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const animFrameRef = useRef<number | null>(null);
   const peaksRef = useRef<number[]>([]);
 
@@ -219,11 +220,22 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = () => {
     >
       {/* Top Winamp Title Bar */}
       <div className="bg-[#0a0015] border-b-2 border-synth-magenta px-3 py-2 flex flex-wrap justify-between items-center gap-2">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Music className="w-4 h-4 text-synth-cyan animate-spin" />
           <span className="font-pixel text-[10px] text-synth-cyan tracking-wider">
-            WINAMP AUDIO RIG: {TRACK_LIST.find((t) => t.id === currentTrack)?.name.toUpperCase()}
+            MUSIC PLAYER
           </span>
+          <button
+            onClick={() => {
+              sfx.playClick();
+              setIsModalOpen(true);
+            }}
+            className="pixel-btn px-2 py-0.5 font-pixel text-[8px] flex items-center gap-1 bg-synth-magenta text-white hover:bg-synth-yellow hover:text-synth-dark transition-all cursor-pointer ml-1"
+            title="Open Whole Player Modal"
+          >
+            <Maximize2 className="w-2.5 h-2.5" />
+            <span>OPEN PLAYER</span>
+          </button>
         </div>
 
         <div className="flex items-center gap-2">
@@ -346,6 +358,178 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = () => {
           </span>
         </div>
       </div>
+
+      {/* WHOLE PLAYER MODAL */}
+      {isModalOpen && (
+        <div className="fixed inset-0 retro-modal-overlay z-50 flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
+          <div className="pixel-box p-4 sm:p-6 max-w-2xl w-full bg-synth-dark border-synth-cyan relative space-y-4 max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center border-b-2 border-synth-magenta pb-3">
+              <div className="flex items-center gap-2">
+                <Music className="w-5 h-5 text-synth-cyan animate-spin" />
+                <h3 className="font-pixel text-xs sm:text-sm text-synth-cyan tracking-wider">
+                  &gt; MUSIC PLAYER // CHIPTUNE SOUNDBANK &lt;
+                </h3>
+              </div>
+              <button
+                onClick={() => {
+                  sfx.playClick();
+                  setIsModalOpen(false);
+                }}
+                className="bg-synth-magenta text-white border-2 border-white w-7 h-7 font-pixel flex items-center justify-center hover:bg-white hover:text-synth-magenta cursor-pointer"
+                title="Close Player"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Current Playing Status */}
+            <div className="p-3 bg-synth-purple/50 border-2 border-synth-yellow flex flex-wrap justify-between items-center gap-3">
+              <div>
+                <div className="font-pixel text-[8px] text-gray-400 mb-1">NOW SPINNING:</div>
+                <div className="font-pixel text-xs sm:text-sm text-synth-yellow flex items-center gap-2">
+                  <Disc className={`w-4 h-4 text-synth-magenta ${isPlaying ? 'animate-spin' : ''}`} />
+                  <span>{TRACK_LIST.find((t) => t.id === currentTrack)?.name.toUpperCase()}</span>
+                </div>
+              </div>
+
+              {/* Quick Play/Pause & Mode */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleTogglePlay}
+                  className={`pixel-btn px-4 py-2 font-pixel text-xs flex items-center gap-1.5 ${
+                    isPlaying ? 'bg-synth-magenta text-white' : 'bg-synth-yellow text-synth-dark font-bold'
+                  }`}
+                >
+                  {isPlaying ? (
+                    <>
+                      <Pause className="w-3.5 h-3.5 fill-current" />
+                      <span>PAUSE</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-3.5 h-3.5 fill-current" />
+                      <span>PLAY</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Volume & Equalizer mode controls */}
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-synth-gray border border-gray-700">
+              <div className="flex items-center gap-2">
+                <Volume2 className="w-4 h-4 text-synth-cyan" />
+                <span className="font-pixel text-[8px] text-gray-300">VOLUME:</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value={volume}
+                  onChange={handleVolumeChange}
+                  className="w-24 sm:w-36 accent-synth-magenta cursor-pointer"
+                />
+                <span className="font-pixel text-[8px] text-synth-cyan">
+                  {Math.round(volume * 100)}%
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span className="font-pixel text-[8px] text-gray-300 mr-1">VISUALIZER:</span>
+                <button
+                  onClick={() => setMode('winamp')}
+                  className={`px-2 py-1 font-pixel text-[8px] border transition-colors ${
+                    mode === 'winamp' ? 'bg-synth-magenta text-white border-white' : 'border-gray-700 text-gray-400 bg-synth-dark'
+                  }`}
+                >
+                  BARS
+                </button>
+                <button
+                  onClick={() => setMode('oscilloscope')}
+                  className={`px-2 py-1 font-pixel text-[8px] border transition-colors ${
+                    mode === 'oscilloscope' ? 'bg-synth-cyan text-synth-dark border-white' : 'border-gray-700 text-gray-400 bg-synth-dark'
+                  }`}
+                >
+                  WAVE
+                </button>
+                <button
+                  onClick={() => setMode('starburst')}
+                  className={`px-2 py-1 font-pixel text-[8px] border transition-colors ${
+                    mode === 'starburst' ? 'bg-synth-yellow text-synth-dark border-white' : 'border-gray-700 text-gray-400 bg-synth-dark'
+                  }`}
+                >
+                  STAR
+                </button>
+              </div>
+            </div>
+
+            {/* Complete Track Vault / Soundbank */}
+            <div className="space-y-2">
+              <div className="font-pixel text-[9px] text-synth-magenta flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-synth-yellow" />
+                <span>SOUNDBANK CASSETTE TAPES (SELECT TRACK TO LOAD):</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {TRACK_LIST.map((t) => {
+                  const isCurrent = currentTrack === t.id;
+                  return (
+                    <div
+                      key={t.id}
+                      onClick={() => {
+                        sfx.playClick();
+                        setCurrentTrack(t.id);
+                        musicEngine.changeTrack(t.id);
+                        if (!musicEngine.isPlaying) {
+                          musicEngine.play();
+                        }
+                      }}
+                      className={`p-3 border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                        isCurrent
+                          ? 'border-synth-yellow bg-synth-purple/70 shadow-[3px_3px_0_#ff2a6d]'
+                          : 'border-gray-700 bg-synth-gray/70 hover:border-synth-cyan'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex justify-between items-start mb-1">
+                          <div className="font-pixel text-[10px] text-synth-yellow flex items-center gap-1.5">
+                            <Disc className={`w-3.5 h-3.5 ${isCurrent && isPlaying ? 'animate-spin text-synth-magenta' : 'text-gray-500'}`} />
+                            <span>{t.name.toUpperCase()}</span>
+                          </div>
+                          <span className="font-pixel text-[8px] text-synth-cyan bg-synth-dark px-1.5 py-0.5 border border-synth-cyan/40">
+                            {t.bpm} BPM
+                          </span>
+                        </div>
+                        <div className="font-pixel text-[8px] text-synth-magenta mb-1">
+                          GENRE: {t.genre.toUpperCase()}
+                        </div>
+                        <div className="font-vt text-base text-gray-300 leading-tight">
+                          {t.description}
+                        </div>
+                      </div>
+                      <div className="mt-2 pt-2 border-t border-gray-800 flex justify-between items-center text-[8px] font-pixel text-gray-400">
+                        <span>{isCurrent && isPlaying ? 'PLAYING NOW' : isCurrent ? 'LOADED' : 'CLICK TO LOAD'}</span>
+                        <span className="text-synth-cyan">4-VOICE POLY</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Close Button */}
+            <button
+              onClick={() => {
+                sfx.playClick();
+                setIsModalOpen(false);
+              }}
+              className="pixel-btn-cyan w-full font-pixel text-xs py-3 uppercase"
+            >
+              &gt; CLOSE PLAYER &amp; RETURN TO QUEST &lt;
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

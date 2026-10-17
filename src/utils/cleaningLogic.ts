@@ -65,6 +65,259 @@ export function calculateRank(
   return 'C';
 }
 
+export interface MilitaryRankResult {
+  tierName: string;
+  rankTitle: string;
+  rankAbbr: string;
+  completionPercent: number;
+  statusBadge: string;
+  isSpeedrun: boolean;
+  isSuccess: boolean;
+  isOvertime: boolean;
+  certificateTitle: string;
+  certificateSubtitle: string;
+  description: string;
+}
+
+/**
+ * Calculates military rank certifications based on mode tiers and task completion percentage.
+ * - Speedrun: mission success or mission failed (with completion certificate even if timing failed)
+ * - Main Quest: Highest Tier (Supreme Command - General, Colonel, Major, Captain, Lieutenant)
+ * - Boss Fight: Special Tier (Special Ops - Apex Commander, Strike Chief, Heavy Vanguard, Combat Specialist)
+ * - Side Quests: Different Tier (Specialist Corps - Master Chief Specialist, Warrant Officer, Staff Sergeant)
+ * - Quick Mission: Lesser Tier (Patrol Corps - First Sergeant, Sergeant, Corporal, Private First Class, Recruit)
+ */
+export function calculateMilitaryRank(params: {
+  difficulty: DifficultyType;
+  gameMode: GameModeType;
+  completedTasks: number;
+  totalTasks: number;
+  timeRemainingSeconds: number;
+}): MilitaryRankResult {
+  const { difficulty, gameMode, completedTasks, totalTasks, timeRemainingSeconds } = params;
+  const pct = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const allTasksDone = totalTasks > 0 && completedTasks >= totalTasks;
+
+  if (gameMode === 'speedrun') {
+    const isTimingSuccessful = timeRemainingSeconds > 0;
+    if (allTasksDone && isTimingSuccessful) {
+      return {
+        tierName: 'SPEEDRUN DIVISION',
+        rankTitle: 'SPEEDRUN FLEET ADMIRAL',
+        rankAbbr: 'ACE',
+        completionPercent: 100,
+        statusBadge: 'MISSION SUCCESS',
+        isSpeedrun: true,
+        isSuccess: true,
+        isOvertime: false,
+        certificateTitle: 'Cleanquest certificate',
+        certificateSubtitle: 'Mission accomplished',
+        description: `Speedrun flawless victory! All ${completedTasks}/${totalTasks} objectives secured under time limit!`,
+      };
+    }
+
+    if (allTasksDone && !isTimingSuccessful) {
+      return {
+        tierName: 'SPEEDRUN DIVISION',
+        rankTitle: 'OVERTIME VETERAN',
+        rankAbbr: 'VET',
+        completionPercent: 100,
+        statusBadge: 'OVERTIME VICTORY',
+        isSpeedrun: true,
+        isSuccess: false,
+        isOvertime: true,
+        certificateTitle: 'Cleanquest certificate',
+        certificateSubtitle: 'Mission accomplished (Overtime)',
+        description: `Timer expired, but all ${completedTasks}/${totalTasks} tasks were cleared! Certificate of completion granted.`,
+      };
+    }
+
+    return {
+      tierName: 'SPEEDRUN DIVISION',
+      rankTitle: 'HONORABLE CADET',
+      rankAbbr: 'MIA',
+      completionPercent: pct,
+      statusBadge: 'MISSION FAILED',
+      isSpeedrun: true,
+      isSuccess: false,
+      isOvertime: false,
+      certificateTitle: 'Cleanquest certificate',
+      certificateSubtitle: 'Mission timed out',
+      description: `Time expired with ${completedTasks}/${totalTasks} (${pct}%) tasks completed. Tactical retreat executed.`,
+    };
+  }
+
+  // Tier 1: Main Quest (Highest tier - Supreme Command)
+  if (difficulty === 'standard') {
+    let rankTitle = 'SECOND LIEUTENANT';
+    let rankAbbr = '2LT';
+    let desc = 'Forward outpost cleared, perimeter established.';
+
+    if (pct === 100) {
+      rankTitle = 'SUPREME COMMANDER';
+      rankAbbr = 'GEN';
+      desc = '5-Star General of Hygiene! Flawless total liberation of the home sanctuary.';
+    } else if (pct >= 80) {
+      rankTitle = 'COLONEL OF SANCTUARY';
+      rankAbbr = 'COL';
+      desc = 'Exemplary command. 80%+ of dust forces completely routed.';
+    } else if (pct >= 60) {
+      rankTitle = 'MAJOR OF BATTALION';
+      rankAbbr = 'MAJ';
+      desc = 'Solid strategic offensive across all core quarters.';
+    } else if (pct >= 40) {
+      rankTitle = 'CAPTAIN OF THE GUARD';
+      rankAbbr = 'CPT';
+      desc = 'Formidable sweep. Crucial high-traffic sectors reclaimed.';
+    } else if (pct >= 20) {
+      rankTitle = 'FIRST LIEUTENANT';
+      rankAbbr = '1LT';
+      desc = 'Initial sector secured, defensive lines holding.';
+    }
+
+    return {
+      tierName: 'MAIN QUEST (SUPREME TIER)',
+      rankTitle,
+      rankAbbr,
+      completionPercent: pct,
+      statusBadge: pct === 100 ? 'MISSION ACCOMPLISHED' : `${pct}% COMPLETED`,
+      isSpeedrun: false,
+      isSuccess: pct >= 50,
+      isOvertime: false,
+      certificateTitle: 'Cleanquest certificate',
+      certificateSubtitle: 'Mission accomplished',
+      description: desc,
+    };
+  }
+
+  // Tier 2: Boss Fights (Special tier - Special Operations)
+  if (difficulty === 'deep') {
+    let rankTitle = 'SPECIAL OPS RECRUIT';
+    let rankAbbr = 'SOR';
+    let desc = 'Engaged the boss encounter and survived the initial shockwave.';
+
+    if (pct === 100) {
+      rankTitle = 'SPECIAL OPS APEX COMMANDER';
+      rankAbbr = 'APEX';
+      desc = 'The epic boss was totally pulverized and sanitized down to the molecular level!';
+    } else if (pct >= 80) {
+      rankTitle = 'STRIKE FORCE CHIEF';
+      rankAbbr = 'SFC';
+      desc = 'Critical structural boss grime neutralized with heavy tactical force.';
+    } else if (pct >= 60) {
+      rankTitle = 'HEAVY VANGUARD CAPTAIN';
+      rankAbbr = 'HVC';
+      desc = 'Major boss defenses stripped through tenacious scrubbing.';
+    } else if (pct >= 40) {
+      rankTitle = 'COMBAT SPECIALIST';
+      rankAbbr = 'CS';
+      desc = 'Significant breakthrough against deeply entrenched grease and grime.';
+    } else if (pct >= 20) {
+      rankTitle = 'SHOCK TROOPER';
+      rankAbbr = 'ST';
+      desc = 'Breached boss territory and cleared first defensive layers.';
+    }
+
+    return {
+      tierName: 'BOSS FIGHT (SPECIAL OPS TIER)',
+      rankTitle,
+      rankAbbr,
+      completionPercent: pct,
+      statusBadge: pct === 100 ? 'MISSION ACCOMPLISHED' : `${pct}% COMPLETED`,
+      isSpeedrun: false,
+      isSuccess: pct >= 50,
+      isOvertime: false,
+      certificateTitle: 'Cleanquest certificate',
+      certificateSubtitle: 'Mission accomplished',
+      description: desc,
+    };
+  }
+
+  // Tier 3: Side Quests (Different tier - Specialist Corps)
+  if (difficulty === 'specific') {
+    let rankTitle = 'RECON APPRENTICE';
+    let rankAbbr = 'REC';
+    let desc = 'Targeted side sector recon initiated.';
+
+    if (pct === 100) {
+      rankTitle = 'MASTER CHIEF SPECIALIST';
+      rankAbbr = 'MCS';
+      desc = 'Precision mastery! Specialized micro-zone purged to absolute perfection.';
+    } else if (pct >= 80) {
+      rankTitle = 'CHIEF WARRANT OFFICER';
+      rankAbbr = 'CWO';
+      desc = 'High-order execution on specialized target zones.';
+    } else if (pct >= 60) {
+      rankTitle = 'STAFF SERGEANT SPECIALIST';
+      rankAbbr = 'SSG';
+      desc = 'Niche chaos brought under firm operational discipline.';
+    } else if (pct >= 40) {
+      rankTitle = 'TECHNICAL SPECIALIST';
+      rankAbbr = 'SPC';
+      desc = 'Methodical cataloging and deep sanitization underway.';
+    } else if (pct >= 20) {
+      rankTitle = 'FIELD OPERATIVE';
+      rankAbbr = 'OPR';
+      desc = 'Initial side objectives successfully tackled.';
+    }
+
+    return {
+      tierName: 'SIDE QUESTS (SPECIALIST TIER)',
+      rankTitle,
+      rankAbbr,
+      completionPercent: pct,
+      statusBadge: pct === 100 ? 'MISSION ACCOMPLISHED' : `${pct}% COMPLETED`,
+      isSpeedrun: false,
+      isSuccess: pct >= 50,
+      isOvertime: false,
+      certificateTitle: 'Cleanquest certificate',
+      certificateSubtitle: 'Mission accomplished',
+      description: desc,
+    };
+  }
+
+  // Tier 4: Quick Mission / Daily Maintenance (Lesser than Main Quest - Patrol Tier)
+  let rankTitle = 'RECRUIT';
+  let rankAbbr = 'RCT';
+  let desc = 'First step of daily hygiene discipline taken.';
+
+  if (pct === 100) {
+    rankTitle = 'FIRST SERGEANT';
+    rankAbbr = '1SG';
+    desc = 'Flawless daily maintenance sortie! Rapid reaction forces victorious.';
+  } else if (pct >= 80) {
+    rankTitle = 'SERGEANT OF PATROL';
+    rankAbbr = 'SGT';
+    desc = 'Swift patrol completed. Perimeter stabilized against dirt encroachment.';
+  } else if (pct >= 60) {
+    rankTitle = 'CORPORAL';
+    rankAbbr = 'CPL';
+    desc = 'Frontline clutter cleared with high turnaround speed.';
+  } else if (pct >= 40) {
+    rankTitle = 'PRIVATE FIRST CLASS';
+    rankAbbr = 'PFC';
+    desc = 'Vital hot spots refreshed and trash depots cleared.';
+  } else if (pct >= 20) {
+    rankTitle = 'PRIVATE';
+    rankAbbr = 'PVT';
+    desc = 'Initial maintenance motions conducted with discipline.';
+  }
+
+  return {
+    tierName: 'DAILY MISSION (PATROL TIER)',
+    rankTitle,
+    rankAbbr,
+    completionPercent: pct,
+    statusBadge: pct === 100 ? 'MISSION ACCOMPLISHED' : `${pct}% COMPLETED`,
+    isSpeedrun: false,
+    isSuccess: pct >= 50,
+    isOvertime: false,
+    certificateTitle: 'Cleanquest certificate',
+    certificateSubtitle: 'Mission accomplished',
+    description: desc,
+  };
+}
+
 /**
  * Calculates Pip's simulated robot cleaning progress (0 to 100)
  * Pip races against the user with pseudo-human jitter and acceleration!

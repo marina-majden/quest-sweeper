@@ -3,6 +3,7 @@ import { HighscoreEntry, Achievement } from '../types/index.ts';
 import { COMPANIONS } from '../data/taskDatabase.ts';
 import { sfx } from '../utils/soundEngine.ts';
 import { Trophy, Award, Medal, Trash2, Sparkles, Star } from 'lucide-react';
+import { TrophyBadge } from './TrophyBadges.tsx';
 
 const SEED_HIGHSCORES: HighscoreEntry[] = [
   { id: 'hs-seed-1', name: 'NEO', score: 6850, difficulty: 'deep', mode: 'speedrun', companion: 'robot', date: '10/12/2026', timeSeconds: 1420, rank: 'S', questName: 'Inferno Grease Fiend' },
@@ -147,8 +148,8 @@ export const HallOfFameView: React.FC = () => {
                         {entry.score.toLocaleString()} PTS
                       </td>
                       <td className="py-3 px-2 hidden sm:table-cell">
-                        <span className="bg-synth-gray border border-synth-magenta text-synth-magenta px-1.5 py-0.5 text-[9px]">
-                          {entry.rank}-RANK
+                        <span className="bg-synth-gray border border-synth-magenta text-synth-magenta px-1.5 py-0.5 text-[9px] font-bold">
+                          {entry.rank.length <= 2 ? `${entry.rank}-RANK` : `[${entry.rank}]`}
                         </span>
                       </td>
                       <td className="py-3 px-2 font-vt text-lg text-gray-300 hidden md:table-cell">
@@ -171,7 +172,66 @@ export const HallOfFameView: React.FC = () => {
 
       {/* TROPHIES & ACHIEVEMENTS VIEW */}
       {activeTab === 'achievements' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="space-y-6">
+          {/* 5 TIER BADGE SHOWCASE */}
+          <div className="pixel-box p-4 bg-synth-dark border-synth-cyan">
+            <h3 className="font-pixel text-xs sm:text-sm text-synth-cyan mb-2 flex items-center justify-center gap-2">
+              <Award className="w-4 h-4 text-synth-yellow" />
+              <span>TIER BADGES &amp; MILITARY INSIGNIA</span>
+            </h3>
+            <p className="font-vt text-lg text-gray-300 text-center mb-4">
+              Each mission tier awards its unique insignia. Flawless 100% completion of any tier unlocks the prestigious Double Ribbon Pinnacle Medallion!
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+              {/* Badge 1 */}
+              <div className="bg-synth-gray/40 border border-gray-700 p-3 flex flex-col items-center justify-between text-center rounded-sm">
+                <TrophyBadge badgeIndex={1} letter="1SG" />
+                <div className="mt-2">
+                  <span className="font-pixel text-[8px] text-gray-300 block">TIER 1 • PATROL</span>
+                  <span className="font-vt text-sm text-gray-400">Daily Sorties</span>
+                </div>
+              </div>
+
+              {/* Badge 2 */}
+              <div className="bg-synth-gray/40 border border-gray-700 p-3 flex flex-col items-center justify-between text-center rounded-sm">
+                <TrophyBadge badgeIndex={2} letter="SPC" />
+                <div className="mt-2">
+                  <span className="font-pixel text-[8px] text-synth-cyan block">TIER 2 • SPECIALIST</span>
+                  <span className="font-vt text-sm text-gray-400">Side Target Zones</span>
+                </div>
+              </div>
+
+              {/* Badge 3 */}
+              <div className="bg-synth-gray/40 border border-gray-700 p-3 flex flex-col items-center justify-between text-center rounded-sm">
+                <TrophyBadge badgeIndex={3} letter="HVC" />
+                <div className="mt-2">
+                  <span className="font-pixel text-[8px] text-synth-magenta block">TIER 3 • SPECIAL OPS</span>
+                  <span className="font-vt text-sm text-gray-400">Epic Boss Battles</span>
+                </div>
+              </div>
+
+              {/* Badge 4 */}
+              <div className="bg-synth-gray/40 border border-gray-700 p-3 flex flex-col items-center justify-between text-center rounded-sm">
+                <TrophyBadge badgeIndex={4} letter="COL" />
+                <div className="mt-2">
+                  <span className="font-pixel text-[8px] text-synth-yellow block">TIER 4 • SUPREME</span>
+                  <span className="font-vt text-sm text-gray-400">Main Quests</span>
+                </div>
+              </div>
+
+              {/* Badge 5 (Double Ribbon) */}
+              <div className="bg-synth-yellow/10 border-2 border-synth-yellow p-3 flex flex-col items-center justify-between text-center rounded-sm shadow-[0_0_12px_rgba(252,200,56,0.3)]">
+                <TrophyBadge badgeIndex={5} letter="GEN" />
+                <div className="mt-2">
+                  <span className="font-pixel text-[8px] text-synth-yellow block font-bold">DOUBLE RIBBON</span>
+                  <span className="font-vt text-sm text-synth-cyan">100% Top Cleared</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {ACHIEVEMENTS_LIST.map((ach) => (
             <div
               key={ach.id}
@@ -207,7 +267,8 @@ export const HallOfFameView: React.FC = () => {
             </div>
           ))}
         </div>
-      )}
-    </div>
+      </div>
+    )}
+  </div>
   );
 };

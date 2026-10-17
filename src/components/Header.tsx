@@ -1,8 +1,7 @@
 import React from 'react';
-import { Music, Calendar, Trophy, Gamepad2, Radio, WifiOff } from 'lucide-react';
+import { Music, Calendar, Trophy, Gamepad2, WifiOff } from 'lucide-react';
 import { PWAInstallButton } from './PWAInstallButton.tsx';
 import { useOnlineStatus } from '../hooks/usePWAInstall.ts';
-import { musicEngine } from '../utils/soundEngine.ts';
 import { sfx } from '../utils/soundEngine.ts';
 
 export type ActiveTab = 'quest' | 'rituals' | 'hall-of-fame' | 'soundstation';
@@ -26,110 +25,89 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="bg-synth-dark border-b-2 sm:border-b-4 border-synth-cyan sticky top-0 z-40 shadow-[0_2px_0_#ff2a6d] sm:shadow-[0_4px_0_#ff2a6d]">
-      <div className="max-w-5xl mx-auto px-2 sm:px-4 py-1.5 sm:py-2.5 flex flex-wrap items-center justify-between gap-2">
-        {/* LOGO & TITLE */}
+      <div className="max-w-5xl mx-auto px-2 sm:px-4 py-1.5 sm:py-2.5 flex items-center justify-between gap-1.5 sm:gap-2">
+        {/* 1. LOGO SQUARED BOX */}
         <div
-          className="flex items-center gap-2 sm:gap-3 cursor-pointer select-none"
+          className="flex items-center cursor-pointer select-none flex-shrink-0"
           onClick={() => {
             sfx.playClick();
             onTabChange('quest');
           }}
+          title="Home"
         >
-          <div className="w-9 h-9 sm:w-11 sm:h-11 bg-synth-gray border-2 sm:border-3 border-synth-cyan flex items-center justify-center shadow-[2px_2px_0_#ff2a6d]">
-            {/* Pixel Vacuum Sprite Icon */}
-            <svg width="26" height="26" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style={{ shapeRendering: 'crispEdges' }}>
-              <rect x="2" y="6" width="28" height="20" rx="4" fill="#05d9e8" stroke="#ff2a6d" strokeWidth="2" />
-              <rect x="7" y="10" width="18" height="8" fill="#0a0015" />
-              <circle cx="11" cy="14" r="2" fill="#05d9e8" />
-              <circle cx="21" cy="14" r="2" fill="#05d9e8" />
-              <rect x="4" y="24" width="24" height="4" fill="#ff2a6d" />
-              <circle cx="7" cy="28" r="3" fill="#fbe54f" stroke="#0a0015" strokeWidth="1" />
-              <circle cx="25" cy="28" r="3" fill="#fbe54f" stroke="#0a0015" strokeWidth="1" />
-            </svg>
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <h1 className="font-pixel text-xs sm:text-base text-synth-cyan neon-text tracking-wider uppercase">
-                CleanQuest
-              </h1>
-              <span className="bg-synth-magenta text-white font-pixel text-[7px] sm:text-[8px] px-1 py-0.2 rounded-sm">
-                8-BIT
-              </span>
-            </div>
-            <p className="text-synth-magenta text-[10px] sm:text-xs tracking-wider hidden xs:block">
-              SYNTHWAVE HOUSEKEEPING RPG
-            </p>
+          <div className="w-10 h-10 sm:w-11 sm:h-11 bg-synth-gray border-2 sm:border-3 border-synth-cyan flex items-center justify-center shadow-[2px_2px_0_#ff2a6d] overflow-hidden rounded-sm hover:scale-105 transition-transform ">
+            <img
+              src="/src/assets/images/logo-mini.png"
+              alt="CleanQuest Logo"
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+            style={{ imageRendering: 'pixelated' }}
+            />
           </div>
         </div>
 
-        {/* NAVIGATION TABS */}
-        <nav className="flex items-center gap-1 sm:gap-2 flex-wrap justify-center">
+        {/* NAVIGATION TABS: 2. HOME, 3. ROUTINE PLANNER, 4. HALL OF FAME */}
+        <nav className="flex items-center gap-1.5 sm:gap-2 justify-center">
+          {/* 2. HOME (ICON ONLY ON MOBILE, SQUARED BOX) */}
           <button
             onClick={() => {
               sfx.playClick();
               onTabChange('quest');
             }}
-            className={`px-3 py-1.5 font-pixel text-[9px] flex items-center gap-1.5 transition-all border-2 ${
+            title="Home"
+            aria-label="Home"
+            className={`w-10 h-10 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 font-pixel text-[9px] flex items-center justify-center gap-1.5 transition-all border-2 cursor-pointer rounded-sm flex-shrink-0 ${
               activeTab === 'quest'
                 ? 'bg-synth-magenta text-white border-white shadow-[2px_2px_0_#05d9e8]'
                 : 'bg-synth-dark text-gray-400 border-gray-700 hover:text-synth-cyan hover:border-synth-cyan'
             }`}
           >
-            <Gamepad2 className="w-3.5 h-3.5" />
-            <span>{isMissionActive ? 'QUEST (ACTIVE)' : 'START QUEST'}</span>
+            <Gamepad2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+            <span className="hidden sm:inline">HOME</span>
           </button>
 
+          {/* 3. ROUTINE PLANNER (ICON ONLY ON MOBILE, SQUARED BOX) */}
           <button
             onClick={() => {
               sfx.playClick();
               onTabChange('rituals');
             }}
-            className={`px-3 py-1.5 font-pixel text-[9px] flex items-center gap-1.5 transition-all border-2 ${
+            title="Routine Planner"
+            aria-label="Routine Planner"
+            className={`w-10 h-10 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 font-pixel text-[9px] flex items-center justify-center gap-1.5 transition-all border-2 cursor-pointer rounded-sm flex-shrink-0 ${
               activeTab === 'rituals'
-                ? 'bg-synth-cyan text-synth-dark border-white shadow-[2px_2px_0_#ff2a6d]'
+                ? 'bg-synth-cyan text-synth-dark font-bold border-white shadow-[2px_2px_0_#ff2a6d]'
                 : 'bg-synth-dark text-gray-400 border-gray-700 hover:text-synth-cyan hover:border-synth-cyan'
             }`}
           >
-            <Calendar className="w-3.5 h-3.5" />
-            <span>RITUAL PLANNER</span>
+            <Calendar className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+            <span className="hidden sm:inline">ROUTINE PLANNER</span>
           </button>
 
+          {/* 4. HALL OF FAME (ICON ONLY ON MOBILE, SQUARED BOX) */}
           <button
             onClick={() => {
               sfx.playClick();
               onTabChange('hall-of-fame');
             }}
-            className={`px-3 py-1.5 font-pixel text-[9px] flex items-center gap-1.5 transition-all border-2 ${
+            title="Hall of Fame"
+            aria-label="Hall of Fame"
+            className={`w-10 h-10 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 font-pixel text-[9px] flex items-center justify-center gap-1.5 transition-all border-2 cursor-pointer rounded-sm flex-shrink-0 ${
               activeTab === 'hall-of-fame'
-                ? 'bg-synth-yellow text-synth-dark border-white shadow-[2px_2px_0_#05d9e8]'
+                ? 'bg-synth-yellow text-synth-dark font-bold border-white shadow-[2px_2px_0_#05d9e8]'
                 : 'bg-synth-dark text-gray-400 border-gray-700 hover:text-synth-yellow hover:border-synth-yellow'
             }`}
           >
-            <Trophy className="w-3.5 h-3.5" />
-            <span>HALL OF FAME</span>
-          </button>
-
-          <button
-            onClick={() => {
-              sfx.playClick();
-              onTabChange('soundstation');
-            }}
-            className={`px-3 py-1.5 font-pixel text-[9px] flex items-center gap-1.5 transition-all border-2 ${
-              activeTab === 'soundstation'
-                ? 'bg-purple-600 text-white border-white shadow-[2px_2px_0_#05d9e8]'
-                : 'bg-synth-dark text-gray-400 border-gray-700 hover:text-purple-300 hover:border-purple-400'
-            }`}
-          >
-            <Radio className="w-3.5 h-3.5" />
-            <span>WINAMP RIG</span>
+            <Trophy className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+            <span className="hidden sm:inline">HALL OF FAME</span>
           </button>
         </nav>
 
-        {/* RIGHT CONTROLS: AUDIO TOGGLE & PWA */}
-        <div className="flex items-center gap-2">
+        {/* 5. RIGHT CONTROLS: AUDIO BUTTON (AS IS, SQUARED BOX) & DESKTOP UTILITIES */}
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
           {!isOnline && (
             <span
-              className="bg-amber-600 text-white font-pixel text-[8px] px-2 py-1 flex items-center gap-1"
+              className="hidden sm:flex bg-amber-600 text-white font-pixel text-[8px] px-2 py-1 items-center gap-1"
               title="CleanQuest is operating 100% locally in offline mode"
             >
               <WifiOff className="w-3 h-3" />
@@ -137,17 +115,20 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
           )}
 
-          <PWAInstallButton />
+          <div className="hidden sm:block">
+            <PWAInstallButton />
+          </div>
 
+          {/* 5. AUDIO BUTTON: SQUARED BOX */}
           <button
             onClick={onToggleMusic}
-            className={`pixel-btn px-3 py-1.5 font-pixel text-[9px] uppercase flex items-center gap-1.5 ${
-              isPlayingMusic ? 'text-synth-yellow border-synth-yellow' : ''
+            className={`w-10 h-10 sm:w-auto sm:h-auto pixel-btn p-0 sm:px-2.5 sm:py-2 font-pixel text-xs flex items-center justify-center cursor-pointer rounded-sm flex-shrink-0 ${
+              isPlayingMusic ? 'text-synth-yellow border-synth-yellow shadow-[0_0_8px_#fbe54f]' : 'text-gray-400'
             }`}
-            title="Toggle Retro Chiptune Music"
+            title={isPlayingMusic ? 'Mute Chiptune Audio' : 'Play Chiptune Audio'}
+            aria-label={isPlayingMusic ? 'Mute Music' : 'Play Music'}
           >
-            <Music className={`w-3.5 h-3.5 ${isPlayingMusic ? 'animate-bounce' : ''}`} />
-            <span>{isPlayingMusic ? 'AUDIO: ON' : 'AUDIO: OFF'}</span>
+            <Music className={`w-4 h-4 ${isPlayingMusic ? 'animate-bounce text-synth-yellow' : ''}`} />
           </button>
         </div>
       </div>

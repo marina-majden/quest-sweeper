@@ -41,7 +41,7 @@ export interface HighscoreEntry {
   companion: CompanionType;
   date: string;
   timeSeconds: number;
-  rank: 'S' | 'A' | 'B' | 'C';
+  rank: string;
   questName: string;
 }
 

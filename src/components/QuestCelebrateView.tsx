@@ -7,9 +7,19 @@ import {
   HighscoreEntry,
 } from '../types/index.ts';
 import { COMPANIONS } from '../data/taskDatabase.ts';
-import { calculateSpeedrunBonus, calculateRank } from '../utils/cleaningLogic.ts';
+import { calculateSpeedrunBonus, calculateMilitaryRank } from '../utils/cleaningLogic.ts';
 import { sfx } from '../utils/soundEngine.ts';
-import { Download, Share2, Trophy, RotateCcw, Award, CheckCircle, Copy } from 'lucide-react';
+import {
+  Download,
+  Share2,
+  Trophy,
+  RotateCcw,
+  CheckCircle,
+  Copy,
+  ExternalLink,
+  X,
+} from 'lucide-react';
+import { getBadgeTierIndex, loadBadgeImage, TrophyBadge } from './TrophyBadges.tsx';
 
 interface QuestCelebrateViewProps {
   score: number;
@@ -20,6 +30,8 @@ interface QuestCelebrateViewProps {
   timeElapsed: number;
   timeRemaining: number;
   allTasksCompleted: boolean;
+  tasksCompletedCount?: number;
+  totalTasksCount?: number;
   onReturnHome: () => void;
   onViewHallOfFame: () => void;
 }
@@ -33,13 +45,20 @@ export const QuestCelebrateView: React.FC<QuestCelebrateViewProps> = ({
   timeElapsed,
   timeRemaining,
   allTasksCompleted,
+  tasksCompletedCount,
+  totalTasksCount,
   onReturnHome,
   onViewHallOfFame,
 }) => {
-  const [initials, setInitials] = useState('ACE');
+  const [playerName, setPlayerName] = useState('OPERATIVE');
   const [hasSaved, setHasSaved] = useState(false);
   const [copiedToast, setCopiedToast] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const completedTasks = tasksCompletedCount ?? (allTasksCompleted ? 5 : 4);
+  const totalTasks = totalTasksCount && totalTasksCount > 0 ? totalTasksCount : 5;
 
   // Speedrun calculations
   const speedBonusResult =
@@ -48,7 +67,41 @@ export const QuestCelebrateView: React.FC<QuestCelebrateViewProps> = ({
       : { bonus: 0, label: 'N/A', isPenalty: false };
 
   const finalScore = Math.max(0, score + speedBonusResult.bonus);
-  const rank = calculateRank(finalScore, allTasksCompleted ? 5 : 4, 5, gameMode === 'speedrun' && allTasksCompleted);
+
+  // New Military Ranking System with Tiers and percentage of completion
+  const militaryRank = calculateMilitaryRank({
+    difficulty,
+    gameMode,
+    completedTasks,
+    totalTasks,
+    timeRemainingSeconds: timeRemaining,
+  });
+
+  // Determine which of the 5 badge designs to use
+  const badgeIndex = getBadgeTierIndex({
+    difficulty,
+    gameMode,
+    completedTasks,
+    totalTasks,
+    isSpeedrunSuccess: militaryRank.isSuccess,
+  });
+
+  const [badgeImage, setBadgeImage] = useState<HTMLImageElement | null>(null);
+
+  // Load badge image asynchronously for canvas rendering
+  useEffect(() => {
+    let active = true;
+    loadBadgeImage(badgeIndex, militaryRank.rankAbbr)
+      .then((img) => {
+        if (active) setBadgeImage(img);
+      })
+      .catch((err) => {
+        console.error('Error loading badge image for canvas:', err);
+      });
+    return () => {
+      active = false;
+    };
+  }, [badgeIndex, militaryRank.rankAbbr]);
 
   // Trigger confetti burst on mount
   useEffect(() => {
@@ -70,7 +123,7 @@ export const QuestCelebrateView: React.FC<QuestCelebrateViewProps> = ({
     return `${m}m ${s}s`;
   };
 
-  // Render the Social Accomplishment Card on HTML5 Canvas
+  // Render the Social Accomplishment Certificate Card on HTML5 Canvas
   const drawAccomplishmentCard = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -123,64 +176,82 @@ export const QuestCelebrateView: React.FC<QuestCelebrateViewProps> = ({
     ctx.font = '16px "Press Start 2P", monospace';
     ctx.fillStyle = '#05d9e8';
     ctx.textAlign = 'center';
-    ctx.fillText('★ CLEANQUEST ARCADE CERTIFIED ★', w / 2, 60);
+    ctx.fillText('★ CLEANQUEST CERTIFICATE ★', w / 2, 58);
 
     ctx.font = '11px "Press Start 2P", monospace';
     ctx.fillStyle = '#ff2a6d';
-    ctx.fillText('MISSION ACCOMPLISHED & DUST DEFEATED', w / 2, 85);
+    ctx.fillText(militaryRank.certificateSubtitle.toUpperCase(), w / 2, 82);
 
     // Player Badge Box
     ctx.fillStyle = '#120b1e';
-    ctx.fillRect(40, 110, w - 80, 180);
+    ctx.fillRect(36, 102, w - 72, 190);
     ctx.strokeStyle = '#fbe54f';
     ctx.lineWidth = 2;
-    ctx.strokeRect(40, 110, w - 80, 180);
+    ctx.strokeRect(36, 102, w - 72, 190);
 
-    // Quest Title
+    // Quest Title & Operative info (supports up to 14 characters)
+    ctx.textAlign = 'left';
+    ctx.font = '12px "Press Start 2P", monospace';
+    ctx.fillStyle = '#fbe54f';
+    ctx.fillText(`OPERATIVE: ${(playerName.trim().toUpperCase() || 'OPERATIVE').slice(0, 14)}`, 52, 130);
+
+    ctx.font = '10px "Press Start 2P", monospace';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(`MISSION: ${questName.toUpperCase().slice(0, 22)}`, 52, 158);
+
+    ctx.font = '9px "Press Start 2P", monospace';
+    ctx.fillStyle = '#05d9e8';
+    ctx.fillText(`TIER: ${militaryRank.tierName}`, 52, 184);
+
+    ctx.font = '9px "Press Start 2P", monospace';
+    ctx.fillStyle = '#05d9e8';
+    ctx.fillText(`TASKS: ${completedTasks}/${totalTasks} | TIME: ${formatTime(timeElapsed)}`, 52, 210);
+
+    ctx.font = '10px "Press Start 2P", monospace';
+    ctx.fillStyle = '#ff2a6d';
+    ctx.fillText(`RANK: ${militaryRank.rankTitle.slice(0, 24)}`, 52, 238);
+
     ctx.font = '14px "Press Start 2P", monospace';
     ctx.fillStyle = '#fbe54f';
-    ctx.textAlign = 'left';
-    ctx.fillText(`OPERATIVE: ${initials.toUpperCase() || 'PLAYER'}`, 60, 145);
+    ctx.fillText(`SCORE: ${finalScore.toLocaleString()} PTS`, 52, 268);
 
-    ctx.font = '11px "Press Start 2P", monospace';
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(`QUEST: ${questName.toUpperCase().slice(0, 26)}`, 60, 175);
+    // Tier Badge Stamp on Right (SVG Badge)
+    if (badgeImage) {
+      const badgeW = badgeIndex === 5 ? 97 : 86;
+      const badgeH = badgeIndex === 5 ? 114 : 115;
+      const badgeX = w - 110 - badgeW / 2;
+      const badgeY = 125;
+      ctx.drawImage(badgeImage, badgeX, badgeY, badgeW, badgeH);
 
-    ctx.font = '10px "Press Start 2P", monospace';
-    ctx.fillStyle = '#05d9e8';
-    ctx.fillText(`MODE: ${gameMode.toUpperCase()} | TIME: ${formatTime(timeElapsed)}`, 60, 205);
+      ctx.font = '8px "Press Start 2P", monospace';
+      ctx.fillStyle = '#fbe54f';
+      ctx.textAlign = 'center';
+      ctx.fillText(militaryRank.statusBadge.slice(0, 16), w - 110, 262);
+    } else {
+      // Fallback while image is rendering
+      ctx.fillStyle = '#ff2a6d';
+      ctx.beginPath();
+      ctx.arc(w - 110, 185, 46, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fbe54f';
+      ctx.lineWidth = 4;
+      ctx.stroke();
 
-    ctx.font = '10px "Press Start 2P", monospace';
-    ctx.fillStyle = '#ff2a6d';
-    ctx.fillText(`COMPANION: ${COMPANIONS[companion].name.toUpperCase()} ${COMPANIONS[companion].emoji}`, 60, 235);
+      ctx.font = '20px "Press Start 2P", monospace';
+      ctx.fillStyle = '#fbe54f';
+      ctx.textAlign = 'center';
+      ctx.fillText(militaryRank.rankAbbr, w - 110, 192);
 
-    ctx.font = '16px "Press Start 2P", monospace';
-    ctx.fillStyle = '#fbe54f';
-    ctx.fillText(`SCORE: ${finalScore.toLocaleString()} PTS`, 60, 268);
+      ctx.font = '8px "Press Start 2P", monospace';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(militaryRank.statusBadge.slice(0, 14), w - 110, 224);
+    }
 
-    // Big Rank Badge Stamp on Right
-    ctx.fillStyle = '#ff2a6d';
-    ctx.beginPath();
-    ctx.arc(w - 120, 200, 48, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#fbe54f';
-    ctx.lineWidth = 4;
-    ctx.stroke();
-
-    ctx.font = '34px "Press Start 2P", monospace';
-    ctx.fillStyle = '#fbe54f';
-    ctx.textAlign = 'center';
-    ctx.fillText(rank, w - 120, 212);
-
-    ctx.font = '8px "Press Start 2P", monospace';
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText('RANK TIER', w - 120, 234);
-
-    // Bottom Synthwave signature
+    // Bottom Cleanquest Link & Date
     ctx.font = '10px "Press Start 2P", monospace';
     ctx.fillStyle = '#05d9e8';
     ctx.textAlign = 'center';
-    ctx.fillText('CLEANQUEST 8-BIT SYNTHWAVE • HOME HYGIENE PROTOCOL', w / 2, 335);
+    ctx.fillText('CLEANQUEST • questsweeper.netlify.app', w / 2, 335);
 
     ctx.font = '9px "Press Start 2P", monospace';
     ctx.fillStyle = '#888888';
@@ -189,24 +260,24 @@ export const QuestCelebrateView: React.FC<QuestCelebrateViewProps> = ({
 
   useEffect(() => {
     drawAccomplishmentCard();
-  }, [initials, finalScore, rank]);
+  }, [playerName, finalScore, militaryRank.rankTitle, completedTasks, totalTasks, badgeImage]);
 
-  // Save to local storage highscores
+  // Save to local storage highscores (14 characters name allowed)
   const handleSaveHighscore = () => {
     if (hasSaved) return;
     sfx.playCoin();
-    const cleanInitials = (initials.trim().toUpperCase() || 'ACE').slice(0, 3);
+    const cleanName = (playerName.trim().toUpperCase() || 'OPERATIVE').slice(0, 14);
 
     const entry: HighscoreEntry = {
       id: `hs-${Date.now()}`,
-      name: cleanInitials,
+      name: cleanName,
       score: finalScore,
       difficulty,
       mode: gameMode,
       companion,
       date: new Date().toLocaleDateString(),
       timeSeconds: timeElapsed,
-      rank,
+      rank: militaryRank.rankAbbr,
       questName,
     };
 
@@ -226,29 +297,30 @@ export const QuestCelebrateView: React.FC<QuestCelebrateViewProps> = ({
       );
       stats.totalCleanedMinutes += Math.round(timeElapsed / 60);
       stats.sessionsCompleted += 1;
-      stats.bunniesVanished += allTasksCompleted ? 5 : 3;
+      stats.bunniesVanished += completedTasks;
       localStorage.setItem('cleanquest_stats', JSON.stringify(stats));
 
       setHasSaved(true);
     } catch {}
   };
 
-  // Download Accomplishment card as PNG
+  // Download Accomplishment card (no PNG in button text)
   const handleDownloadCard = () => {
     sfx.playClick();
     const canvas = canvasRef.current;
     if (!canvas) return;
     const url = canvas.toDataURL('image/png');
     const a = document.createElement('a');
+    const cleanName = (playerName.trim().toUpperCase() || 'OPERATIVE').slice(0, 14);
     a.href = url;
-    a.download = `CleanQuest-${initials.toUpperCase() || 'Score'}-${finalScore}PTS.png`;
+    a.download = `CleanQuest-Certificate-${cleanName}-${finalScore}PTS.png`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
   };
 
-  // Share card via Web Share API or copy image to clipboard
-  const handleShareCard = async () => {
+  // Direct image copy or Web Share
+  const handleCopyOrShareBlob = async () => {
     sfx.playClick();
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -256,12 +328,12 @@ export const QuestCelebrateView: React.FC<QuestCelebrateViewProps> = ({
     try {
       canvas.toBlob(async (blob) => {
         if (!blob) return;
-        const file = new File([blob], 'cleanquest-trophy.png', { type: 'image/png' });
+        const file = new File([blob], 'cleanquest-certificate.png', { type: 'image/png' });
 
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({
-            title: `CleanQuest Trophy: ${finalScore} PTS (Rank ${rank})`,
-            text: `I just vanquished the mess in CleanQuest with a score of ${finalScore} PTS (Rank ${rank})! Powered by 8-bit Synthwave!`,
+            title: `CleanQuest Certificate: ${militaryRank.rankTitle}`,
+            text: `I earned the rank of ${militaryRank.rankTitle} in Cleanquest (${finalScore} PTS)! Cleaned ${completedTasks}/${totalTasks} objectives. Play at https://questsweeper.netlify.app`,
             files: [file],
           });
         } else if (navigator.clipboard && navigator.clipboard.write) {
@@ -271,7 +343,6 @@ export const QuestCelebrateView: React.FC<QuestCelebrateViewProps> = ({
           setCopiedToast(true);
           setTimeout(() => setCopiedToast(false), 3000);
         } else {
-          // Fallback download
           handleDownloadCard();
         }
       });
@@ -280,12 +351,23 @@ export const QuestCelebrateView: React.FC<QuestCelebrateViewProps> = ({
     }
   };
 
+  const handleCopyGameLink = () => {
+    sfx.playClick();
+    try {
+      navigator.clipboard.writeText('https://questsweeper.netlify.app');
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 3000);
+    } catch {}
+  };
+
+  const shareText = `I just completed a mission in Cleanquest with ${completedTasks}/${totalTasks} tasks cleared! Awarded rank: ${militaryRank.rankTitle} [${militaryRank.rankAbbr}] with ${finalScore.toLocaleString()} PTS!`;
+
   return (
     <div className="space-y-8 animate-fadeIn text-center py-4">
-      {/* LEVEL COMPLETE HEADER */}
+      {/* MISSION COMPLETE HEADER */}
       <div>
-        <h2 className="font-pixel text-2xl sm:text-4xl text-synth-yellow blink-text mb-2">
-          &gt; LEVEL COMPLETE &lt;
+        <h2 className="font-pixel text-lg md:text-2xl sm:text-4xl text-synth-yellow blink-text mb-2">
+          &gt; MISSION COMPLETE &lt;
         </h2>
         <p className="font-vt text-2xl text-synth-cyan">
           Dust bunnies banished. Sanctuary restored to pristine optical order.
@@ -317,6 +399,13 @@ export const QuestCelebrateView: React.FC<QuestCelebrateViewProps> = ({
         )}
 
         <div className="flex justify-between items-center border-b-2 border-gray-700 pb-2">
+          <span className="font-pixel text-xs text-gray-400">TASKS COMPLETED</span>
+          <span className="font-pixel text-sm text-synth-yellow">
+            {completedTasks} / {totalTasks} ({militaryRank.completionPercent}%)
+          </span>
+        </div>
+
+        <div className="flex justify-between items-center border-b-2 border-gray-700 pb-2">
           <span className="font-pixel text-xs text-gray-400">TIME TAKEN</span>
           <span className="font-pixel text-sm text-white">{formatTime(timeElapsed)}</span>
         </div>
@@ -328,33 +417,41 @@ export const QuestCelebrateView: React.FC<QuestCelebrateViewProps> = ({
           </span>
         </div>
 
-        <div className="flex justify-between items-center pt-2">
-          <span className="font-pixel text-xs text-synth-cyan">CLEANING RANK AWARDED</span>
-          <span className="font-pixel text-2xl text-synth-magenta font-bold bg-synth-gray px-3 py-1 border-2 border-synth-magenta">
-            {rank}-RANK
-          </span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t-2 border-gray-800">
+          <div>
+            <span className="font-pixel text-[10px] text-synth-cyan block">{militaryRank.tierName}</span>
+            <span className="font-pixel text-xs sm:text-sm text-synth-magenta font-bold">
+              {militaryRank.rankTitle}
+            </span>
+            <span className="font-vt text-lg text-synth-yellow block mt-0.5">
+              {badgeIndex === 5 ? '★ DOUBLE RIBBON PINNACLE GRADE ★' : `TIER DESIGN #${badgeIndex}`}
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <TrophyBadge badgeIndex={badgeIndex} letter={militaryRank.rankAbbr} />
+          </div>
         </div>
       </div>
 
-      {/* HIGHSCORE INITIALS INPUT */}
+      {/* HIGHSCORE NAME INPUT (UP TO 14 CHARACTERS) */}
       <div className="max-w-lg mx-auto space-y-3">
         <h3 className="font-pixel text-xs sm:text-sm text-synth-cyan">
-          {hasSaved ? 'HIGHSCORE RECORDED IN ARCHIVES!' : 'ENTER 3-LETTER INITIALS TO SAVE:'}
+          {hasSaved ? 'NAME RECORDED IN ARCHIVES!' : 'ENTER YOUR NAME:'}
         </h3>
 
         {!hasSaved ? (
-          <div className="flex justify-center items-center gap-3">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-3">
             <input
               type="text"
-              maxLength={3}
-              value={initials}
-              onChange={(e) => setInitials(e.target.value.toUpperCase())}
-              className="bg-synth-dark border-4 border-synth-magenta text-synth-yellow font-pixel text-2xl sm:text-3xl p-3 w-28 text-center uppercase focus:outline-none focus:border-synth-cyan"
-              placeholder="ACE"
+              maxLength={14}
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value.toUpperCase())}
+              className="bg-synth-dark border-4 border-synth-magenta text-synth-yellow font-pixel text-base sm:text-xl p-3 w-64 sm:w-80 text-center uppercase focus:outline-none focus:border-synth-cyan"
+              placeholder="ENTER YOUR NAME"
             />
             <button
               onClick={handleSaveHighscore}
-              className="pixel-btn font-pixel text-sm px-6 py-4"
+              className="pixel-btn font-pixel text-sm px-6 py-3 cursor-pointer w-full sm:w-auto"
             >
               RECORD
             </button>
@@ -362,20 +459,13 @@ export const QuestCelebrateView: React.FC<QuestCelebrateViewProps> = ({
         ) : (
           <div className="flex items-center justify-center gap-2 text-green-400 font-pixel text-xs">
             <CheckCircle className="w-5 h-5 text-green-400" />
-            <span>SAVED TO LOCAL STORAGE!</span>
+            <span>RECORDED TO LOCAL STORAGE!</span>
           </div>
         )}
       </div>
 
-      {/* SHAREABLE ACCOMPLISHMENT TROPHY CARD */}
-      <div className="max-w-2xl mx-auto space-y-4 pt-4">
-        <div className="flex items-center justify-center gap-2">
-          <Award className="w-5 h-5 text-synth-yellow animate-bounce" />
-          <h3 className="font-pixel text-sm text-synth-yellow uppercase">
-            SHAREABLE ARCADE TROPHY CARD (INSTANT SOCIAL EXPORT)
-          </h3>
-        </div>
-
+      {/* CLEANQUEST CERTIFICATE TROPHY CARD (Yellow text removed) */}
+      <div className="max-w-2xl mx-auto space-y-4 pt-2">
         {/* The Live Rendered Canvas */}
         <div className="flex justify-center">
           <canvas
@@ -386,33 +476,150 @@ export const QuestCelebrateView: React.FC<QuestCelebrateViewProps> = ({
           />
         </div>
 
-        {/* Card Export Action Buttons */}
+        {/* Link to the game */}
+        <div className="text-center font-pixel text-xs text-gray-300">
+          Play online at:{' '}
+          <a
+            href="https://questsweeper.netlify.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-synth-cyan hover:text-synth-yellow underline cursor-pointer inline-flex items-center gap-1 font-bold transition-colors"
+          >
+            Cleanquest <ExternalLink className="w-3.5 h-3.5 inline" />
+          </a>{' '}
+          <span className="text-gray-400">(questsweeper.netlify.app)</span>
+        </div>
+
+        {/* Card Export Action Buttons: PNG removed, SHARE IMAGE opens social menu */}
         <div className="flex flex-wrap justify-center items-center gap-3">
           <button
             onClick={handleDownloadCard}
-            className="pixel-btn font-pixel text-xs px-5 py-3 flex items-center gap-2 bg-synth-cyan text-synth-dark hover:bg-white"
-            title="Download Trophy Card image to camera roll / desktop"
+            className="pixel-btn font-pixel text-xs px-5 py-3 flex items-center gap-2 bg-synth-cyan text-synth-dark hover:bg-white cursor-pointer"
+            title="Download Certificate image to device"
           >
             <Download className="w-4 h-4 stroke-[2.5]" />
-            <span>DOWNLOAD TROPHY CARD (PNG)</span>
+            <span>DOWNLOAD TROPHY CARD</span>
           </button>
 
           <button
-            onClick={handleShareCard}
-            className="pixel-btn font-pixel text-xs px-5 py-3 flex items-center gap-2 bg-synth-yellow text-synth-dark hover:bg-white"
-            title="Share directly or copy card image to clipboard"
+            onClick={() => {
+              sfx.playClick();
+              setShowShareModal(true);
+            }}
+            className="pixel-btn font-pixel text-xs px-5 py-3 flex items-center gap-2 bg-synth-yellow text-synth-dark hover:bg-white cursor-pointer"
+            title="Share image to social media"
           >
             <Share2 className="w-4 h-4 stroke-[2.5]" />
-            <span>SHARE / COPY IMAGE</span>
+            <span>SHARE IMAGE</span>
           </button>
         </div>
 
         {copiedToast && (
           <div className="bg-synth-yellow text-synth-dark font-pixel text-[10px] px-3 py-2 inline-block rounded shadow">
-            Trophy Card image copied to clipboard! Ready to paste into chat or socials!
+            Certificate image copied to clipboard! Ready to paste into chat or socials!
           </div>
         )}
       </div>
+
+      {/* SOCIAL MEDIA SHARE MODAL */}
+      {showShareModal && (
+        <div className="fixed inset-0 retro-modal-overlay z-50 flex items-center justify-center p-4">
+          <div className="pixel-box p-6 max-w-lg w-full bg-synth-dark text-left space-y-5 shadow-[8px_8px_0_#ff2a6d] border-synth-magenta relative max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => {
+                sfx.playClick();
+                setShowShareModal(false);
+              }}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white font-pixel text-sm p-1 cursor-pointer"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="border-b-2 border-synth-magenta pb-3">
+              <h3 className="font-pixel text-sm sm:text-base text-synth-yellow flex items-center gap-2">
+                <Share2 className="w-5 h-5 text-synth-magenta" />
+                <span>SHARE CERTIFICATE</span>
+              </h3>
+              <p className="font-vt text-lg text-synth-cyan mt-1">
+                Broadcast your {militaryRank.rankTitle} accomplishment!
+              </p>
+            </div>
+
+            {/* Social media share links */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent('https://questsweeper.netlify.app')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => sfx.playClick()}
+                className="pixel-btn-cyan font-pixel text-xs p-3 flex items-center justify-center gap-2 text-center"
+              >
+                <span>X / TWITTER</span>
+              </a>
+
+              <a
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + ' https://questsweeper.netlify.app')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => sfx.playClick()}
+                className="pixel-btn font-pixel text-xs p-3 flex items-center justify-center gap-2 text-center bg-green-500 hover:bg-green-400 text-black border-green-300"
+              >
+                <span>WHATSAPP</span>
+              </a>
+
+              <a
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://questsweeper.netlify.app')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => sfx.playClick()}
+                className="pixel-btn font-pixel text-xs p-3 flex items-center justify-center gap-2 text-center bg-blue-600 hover:bg-blue-500 text-white border-blue-400"
+              >
+                <span>FACEBOOK</span>
+              </a>
+
+              <a
+                href={`https://reddit.com/submit?url=${encodeURIComponent('https://questsweeper.netlify.app')}&title=${encodeURIComponent('Cleanquest Certificate: ' + militaryRank.rankTitle)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => sfx.playClick()}
+                className="pixel-btn font-pixel text-xs p-3 flex items-center justify-center gap-2 text-center bg-orange-600 hover:bg-orange-500 text-white border-orange-400"
+              >
+                <span>REDDIT</span>
+              </a>
+
+              <a
+                href={`https://t.me/share/url?url=${encodeURIComponent('https://questsweeper.netlify.app')}&text=${encodeURIComponent(shareText)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => sfx.playClick()}
+                className="pixel-btn font-pixel text-xs p-3 flex items-center justify-center gap-2 text-center bg-sky-500 hover:bg-sky-400 text-white border-sky-300 sm:col-span-2"
+              >
+                <span>TELEGRAM</span>
+              </a>
+            </div>
+
+            {/* Direct Image Copy / Device Share Actions */}
+            <div className="pt-2 border-t-2 border-gray-700 space-y-3">
+              <button
+                onClick={handleCopyOrShareBlob}
+                className="pixel-btn font-pixel text-xs w-full py-3 flex items-center justify-center gap-2 bg-synth-yellow text-synth-dark hover:bg-white cursor-pointer"
+              >
+                <Copy className="w-4 h-4" />
+                <span>COPY CERTIFICATE IMAGE TO CLIPBOARD</span>
+              </button>
+
+              <button
+                onClick={handleCopyGameLink}
+                className="pixel-btn font-pixel text-xs w-full py-2.5 flex items-center justify-center gap-2 bg-synth-gray text-synth-cyan hover:text-white cursor-pointer"
+              >
+                <ExternalLink className="w-4 h-4" />
+                <span>{linkCopied ? 'GAME LINK COPIED!' : 'COPY GAME LINK (questsweeper.netlify.app)'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* RETURN NAVIGATION BUTTONS */}
       <div className="flex flex-wrap justify-center items-center gap-4 pt-6">
@@ -421,7 +628,7 @@ export const QuestCelebrateView: React.FC<QuestCelebrateViewProps> = ({
           className="pixel-btn font-pixel text-xs sm:text-sm px-6 py-3 flex items-center gap-2"
         >
           <RotateCcw className="w-4 h-4" />
-          <span>START NEW MISSION</span>
+          <span>NEW MISSION</span>
         </button>
 
         <button
@@ -429,7 +636,7 @@ export const QuestCelebrateView: React.FC<QuestCelebrateViewProps> = ({
           className="pixel-btn-cyan font-pixel text-xs sm:text-sm px-6 py-3 flex items-center gap-2"
         >
           <Trophy className="w-4 h-4" />
-          <span>VIEW HALL OF FAME</span>
+          <span>HALL OF FAME</span>
         </button>
       </div>
     </div>

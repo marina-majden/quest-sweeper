@@ -18,7 +18,7 @@ export const COMPANIONS: Record<CompanionType, CompanionInfo> = {
     title: 'THE HYPEMASTER',
     emoji: '🧽',
     color: '#05d9e8',
-    tagline: 'Upbeat cheerleader & cleaning chemistry enthusiast!',
+    tagline: 'The best guide, ultimate cheerleader and cleaning expert with great advice!',
     quotes: [
       "Let's make this dungeon sparkle like a disco ball!",
       "Scrubbing everything in our path! Double combo active!",
@@ -41,7 +41,7 @@ export const COMPANIONS: Record<CompanionType, CompanionInfo> = {
     title: 'THE RIVAL COMPILER',
     emoji: '🤖',
     color: '#fbe54f',
-    tagline: 'Hyper-efficient rival who challenges you to clean faster!',
+    tagline: 'Hyper-effiecient and goal-oriented rival will challenge you and push you to your highest performance!',
     quotes: [
       "Efficiency index: 99.8%. Can an organic human match my clock speed?",
       "Mess detected. Calculating optimal trajectory of sponge...",
@@ -63,7 +63,7 @@ export const COMPANIONS: Record<CompanionType, CompanionInfo> = {
     title: 'THE MINDFUL SAGE',
     emoji: '🐰',
     color: '#ff2a6d',
-    tagline: 'Zero stress, anti-overwhelm, gentle and loving encouragement.',
+    tagline: 'This calm and collected co-player will bring you zero stress and so much healthy tips.',
     quotes: [
       "Breathe in deep peace, breathe out clutter. You are safe here.",
       "You don't need to clean the entire galaxy today. Just this one friendly corner.",

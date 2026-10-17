@@ -34,23 +34,24 @@ body {
 .scanlines {
   background: linear-gradient(
     to bottom,
-    rgba(255,255,255,0),
-    rgba(255,255,255,0) 50%,
-    rgba(0,0,0,0.2) 50%,
-    rgba(0,0,0,0.2)
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0) 50%,
+    rgba(0, 0, 0, 0.08) 50%,
+    rgba(0, 0, 0, 0.08)
   );
   background-size: 100% 4px;
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   z-index: 9999;
   pointer-events: none;
-  animation: crt-flicker 0.15s infinite;
+  opacity: 0.90;
+  animation: crt-flicker 0.25s infinite;
 }
 
 @keyframes crt-flicker {
-  0% { opacity: 0.94; }
-  50% { opacity: 1; }
-  100% { opacity: 0.97; }
+  0% { opacity: 0.70; }
+  50% { opacity: 0.80; }
+  100% { opacity: 0.74; }
 }
 
 /* Custom Scrollbar */
@@ -272,9 +273,106 @@ body {
 @keyframes movingLines { 0% { transform: translateY(0px); } 100% { transform: translateY(130px); } }
 @keyframes movingLines0 { 0% { transform: translateY(0px); height: 0%; } 100% { transform: translateY(130px); height: 100%; } }
 
+/* Sponge Gentle Cleaning Scrub Animation */
+@keyframes sponge-clean {
+  0% { transform: translateX(0px) rotate(0deg); }
+  2% { transform: translateX(-5px) rotate(-3deg); }
+  4% { transform: translateX(5px) rotate(3deg); }
+  6% { transform: translateX(-4px) rotate(-2deg); }
+  8% { transform: translateX(4px) rotate(2deg); }
+  10% { transform: translateX(0px) rotate(0deg); }
+  /* Long relaxed pause */
+  11%, 65% { transform: translateX(0px) rotate(0deg); }
+  /* Short gentle scrub 2 */
+  67% { transform: translateX(-5px) rotate(-2.5deg); }
+  69% { transform: translateX(5px) rotate(2.5deg); }
+  71% { transform: translateX(0px) rotate(0deg); }
+  /* Long pause until next cycle */
+  72%, 100% { transform: translateX(0px) rotate(0deg); }
+}
+
+.animate-sponge-clean {
+  display: inline-block;
+  animation: sponge-clean 5.2s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+/* Robot Pip Gestures & Mimics */
+@keyframes robot-mimic {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  /* Robotic mechanical head tilt left */
+  4% { transform: translateY(-2px) rotate(-7deg); }
+  10% { transform: translateY(-2px) rotate(-7deg); }
+  /* Quick snap tilt right (radar scan mimic) */
+  14% { transform: translateY(-3px) rotate(7deg); }
+  20% { transform: translateY(-3px) rotate(7deg); }
+  /* Robotic double nod / affirmative calculation */
+  24% { transform: translateY(3px) rotate(0deg); }
+  27% { transform: translateY(0px) rotate(0deg); }
+  30% { transform: translateY(3px) rotate(0deg); }
+  33% { transform: translateY(0px) rotate(0deg); }
+  /* Idle processing pause */
+  34%, 70% { transform: translateY(0px) rotate(0deg); }
+  /* Subtle alert bounce / optic scan */
+  72% { transform: translateY(-4px) scale(1.05); }
+  76% { transform: translateY(0px) scale(1); }
+  78%, 100% { transform: translateY(0px) rotate(0deg); }
+}
+
+.animate-robot-mimic {
+  display: inline-block;
+  animation: robot-mimic 4.8s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+/* Zen Bunny Ear & Nose Wiggle Animation */
+@keyframes bunny-wiggle {
+  0%, 100% { transform: translateY(0px) rotate(0deg) scale(1, 1); }
+  /* Ear wiggle: tilt left, twitch right, twitch left */
+  3% { transform: rotate(-5deg) translateY(-1px); }
+  6% { transform: rotate(5deg) translateY(-1px); }
+  9% { transform: rotate(-3deg) translateY(0px); }
+  12% { transform: rotate(3deg) translateY(0px); }
+  15% { transform: rotate(0deg) translateY(0px); }
+  /* Nose wiggle / twitch: rapid subtle squash and stretch */
+  18% { transform: scale(1.06, 0.94); }
+  21% { transform: scale(0.96, 1.04); }
+  24% { transform: scale(1.06, 0.94); }
+  27% { transform: scale(1, 1); }
+  /* Peaceful breathing pause */
+  28%, 70% { transform: translateY(0px) scale(1, 1); }
+  /* Secondary gentle nose twitch */
+  72% { transform: scale(1.05, 0.95); }
+  75% { transform: scale(0.97, 1.03); }
+  78% { transform: scale(1, 1); }
+  79%, 100% { transform: translateY(0px) scale(1, 1); }
+}
+
+.animate-bunny-wiggle {
+  display: inline-block;
+  animation: bunny-wiggle 4.5s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
 .retro-modal-overlay {
   background-color: rgba(10, 0, 21, 0.88);
   backdrop-filter: blur(4px);
+  line-height: 1;
+}
+
+.retro-modal-overlay p, .retro-modal-overlay li, .retro-modal-overlay span {
+  line-height: 1;
+  font-size: 1rem;
+  text-align: justify;
+  text-wrap: pretty;
+}
+.retro-modal-overlay h1, .retro-modal-overlay h2, .retro-modal-overlay h3 {
+  line-height: 1.1;
+  font-size: 12px;
+  text-align: left;
+  text-wrap: balance;
+  margin: 2px 1px;
+  
 }
 
 #visualizer-wrapper.is-fullscreen {
@@ -294,4 +392,27 @@ body {
   flex: 1 !important; 
   height: 100% !important; 
   border-radius: 0 !important; 
+}
+
+/* 8-Bit Trophy Animated Badges */
+.animated_badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.25s ease-out;
+  cursor: pointer;
+}
+
+.animated_badge:hover {
+  transform: translateY(-4px) scale(1.08);
+  filter: drop-shadow(0 0 10px rgba(5, 217, 232, 0.7));
+}
+
+.animated_badge_svg {
+  filter: drop-shadow(2px 3px 0px rgba(0, 0, 0, 0.45));
+}
+
+.animated_badge_5:hover {
+  filter: drop-shadow(0 0 14px rgba(252, 200, 56, 0.85)) drop-shadow(0 0 4px rgba(240, 65, 82, 0.8));
 }

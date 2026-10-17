@@ -4,6 +4,7 @@ import {
   calculateTaskPoints,
   calculateSpeedrunBonus,
   calculateRank,
+  calculateMilitaryRank,
   calculatePipProgress,
   filterVisibleTasksForMystery,
   resetRareChores,
@@ -42,6 +43,95 @@ test('calculateRank properly ranks performance', () => {
   assert.equal(calculateRank(2600, 4, 5, false), 'A');
   assert.equal(calculateRank(1600, 3, 5, false), 'B');
   assert.equal(calculateRank(400, 1, 5, false), 'C');
+});
+
+test('calculateMilitaryRank assigns tiered military ranks based on completion and mode', () => {
+  // Speedrun success
+  const speedrunWin = calculateMilitaryRank({
+    difficulty: 'standard',
+    gameMode: 'speedrun',
+    completedTasks: 5,
+    totalTasks: 5,
+    timeRemainingSeconds: 120,
+  });
+  assert.equal(speedrunWin.statusBadge, 'MISSION SUCCESS');
+  assert.equal(speedrunWin.rankAbbr, 'ACE');
+  assert.equal(speedrunWin.isSuccess, true);
+
+  // Speedrun overtime (tasks done, timing failed -> certificate of completion)
+  const speedrunOvertime = calculateMilitaryRank({
+    difficulty: 'standard',
+    gameMode: 'speedrun',
+    completedTasks: 5,
+    totalTasks: 5,
+    timeRemainingSeconds: 0,
+  });
+  assert.equal(speedrunOvertime.statusBadge, 'OVERTIME VICTORY');
+  assert.equal(speedrunOvertime.rankAbbr, 'VET');
+  assert.equal(speedrunOvertime.isOvertime, true);
+
+  // Speedrun failed (timed out without finishing tasks)
+  const speedrunFailed = calculateMilitaryRank({
+    difficulty: 'standard',
+    gameMode: 'speedrun',
+    completedTasks: 2,
+    totalTasks: 5,
+    timeRemainingSeconds: 0,
+  });
+  assert.equal(speedrunFailed.statusBadge, 'MISSION FAILED');
+
+  // Main Quest (Highest tier - Supreme Command)
+  const main100 = calculateMilitaryRank({
+    difficulty: 'standard',
+    gameMode: 'standard',
+    completedTasks: 5,
+    totalTasks: 5,
+    timeRemainingSeconds: 4000,
+  });
+  assert.equal(main100.rankAbbr, 'GEN');
+  assert.equal(main100.rankTitle, 'SUPREME COMMANDER');
+
+  const main60 = calculateMilitaryRank({
+    difficulty: 'standard',
+    gameMode: 'standard',
+    completedTasks: 3,
+    totalTasks: 5,
+    timeRemainingSeconds: 4000,
+  });
+  assert.equal(main60.rankAbbr, 'MAJ');
+
+  // Boss Fight (Special Ops Tier)
+  const boss100 = calculateMilitaryRank({
+    difficulty: 'deep',
+    gameMode: 'standard',
+    completedTasks: 5,
+    totalTasks: 5,
+    timeRemainingSeconds: 1200,
+  });
+  assert.equal(boss100.rankAbbr, 'APEX');
+  assert.equal(boss100.rankTitle, 'SPECIAL OPS APEX COMMANDER');
+
+  // Side Quests (Specialist Tier)
+  const side100 = calculateMilitaryRank({
+    difficulty: 'specific',
+    gameMode: 'standard',
+    completedTasks: 5,
+    totalTasks: 5,
+    timeRemainingSeconds: 800,
+  });
+  assert.equal(side100.rankAbbr, 'MCS');
+  assert.equal(side100.rankTitle, 'MASTER CHIEF SPECIALIST');
+
+  // Daily Mission (Patrol Tier)
+  const daily100 = calculateMilitaryRank({
+    difficulty: 'maintenance',
+    gameMode: 'standard',
+    completedTasks: 5,
+    totalTasks: 5,
+    timeRemainingSeconds: 500,
+  });
+  assert.equal(daily100.rankAbbr, '1SG');
+  assert.equal(daily100.rankTitle, 'FIRST SERGEANT');
 });
 
 test('calculatePipProgress simulates competitive robot rival', () => {
