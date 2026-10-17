@@ -11,7 +11,7 @@ export default defineConfig(() => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['icon.svg', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
+        includeAssets: ['icon-logo.svg', 'pwa-192.png', 'pwa-512.png', 'cleanquest-hero.png', 'cleanquest-hero-wide.png'],
         manifest: {
           id: '/',
           name: 'CleanQuest: 8-Bit Synthwave Edition',
@@ -24,19 +24,19 @@ export default defineConfig(() => {
           scope: '/',
           icons: [
             {
-              src: '/pwa-192x192.png',
+              src: '/pwa-192.png',
               sizes: '192x192',
               type: 'image/png',
               purpose: 'any',
             },
             {
-              src: '/pwa-512x512.png',
+              src: '/pwa-512.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'any',
             },
             {
-              src: '/icon.svg',
+              src: '/icon-logo.svg',
               sizes: '512x512',
               type: 'image/svg+xml',
               purpose: 'any',
