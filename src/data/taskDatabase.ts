@@ -1,4 +1,4 @@
-import type { CleaningTask, CompanionType, DifficultyType } from '../types/index.ts';
+import type {  CompanionType } from '../types/index.ts';
 
 export interface CompanionInfo {
   id: CompanionType;

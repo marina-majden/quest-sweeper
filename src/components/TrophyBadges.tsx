@@ -3,12 +3,67 @@ import { DifficultyType, GameModeType } from '../types/index.ts';
 
 /**
  * Returns the font size for the badge letter based on its length
+ * Single letter is rendered large (26px) for bold retro grade/rank presence
  */
 function getFontSize(text: string): number {
-  if (text.length <= 1) return 20;
-  if (text.length === 2) return 14;
+  if (text.length <= 1) return 26;
+  if (text.length === 2) return 18;
   if (text.length === 3) return 11;
   return 9;
+}
+
+/**
+ * Calculates a single big letter for the badge:
+ * - 'G' for "General" / Supreme rank on top completion (Badge 5)
+ * - 'S' for Special Forces (Boss battles or Speedrun victory)
+ * - 'A' (Alpha) for high tier performance
+ * - 'B' (Beta) / 'C' for other grades
+ */
+export function getSingleBadgeLetter(params: {
+  badgeIndex: 1 | 2 | 3 | 4 | 5;
+  difficulty: DifficultyType;
+  gameMode: GameModeType;
+  completedTasks: number;
+  totalTasks: number;
+  isSpeedrunSuccess?: boolean;
+}): string {
+  const { badgeIndex, difficulty, gameMode, completedTasks, totalTasks, isSpeedrunSuccess } = params;
+  const pct = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
+  // Best completion / Pinnacle grade (Double Ribbon)
+  if (badgeIndex === 5) {
+    if (difficulty === 'deep' || (gameMode === 'speedrun' && isSpeedrunSuccess)) {
+      return 'S';
+    }
+    return 'G'; // General / Supreme rank
+  }
+
+  // Tier 3: Boss fight (Special Forces)
+  if (difficulty === 'deep') {
+    return 'S';
+  }
+
+  // Speedrun (overtime or partial)
+  if (gameMode === 'speedrun') {
+    return pct >= 80 ? 'A' : 'B';
+  }
+
+  // Tier 4: Main Quest
+  if (difficulty === 'standard') {
+    if (pct >= 80) return 'A';
+    if (pct >= 50) return 'B';
+    return 'C';
+  }
+
+  // Tier 2: Side Quests
+  if (difficulty === 'specific') {
+    if (pct >= 75) return 'B';
+    return 'C';
+  }
+
+  // Tier 1: Daily Mission / Patrol
+  if (pct >= 80) return 'B';
+  return 'C';
 }
 
 /**

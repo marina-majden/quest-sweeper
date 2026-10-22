@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { musicEngine, TRACK_LIST, TrackId, sfx } from '../utils/soundEngine.ts';
+import { musicEngine, TRACK_LIST, TRACK_AUDIO_MAP, TrackId, sfx } from '../utils/soundEngine.ts';
 import { Play, Pause, Maximize2, Minimize2, Volume2, Music, Sparkles, X, Disc } from 'lucide-react';
 
 export type VisualizerMode = 'winamp' | 'oscilloscope' | 'starburst';
@@ -191,7 +191,7 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = () => {
         ctx.arc(centerX, centerY, radius - 2, 0, Math.PI * 2);
         ctx.fill();
         ctx.strokeStyle = '#05d9e8';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 6;
         ctx.stroke();
 
         ctx.font = '16px "Press Start 2P", monospace';
@@ -302,14 +302,14 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = () => {
       </div>
 
       {/* Bottom Transport Controls */}
-      <div className="p-2.5 bg-synth-gray flex flex-wrap justify-between items-center gap-3 border-t-2 border-synth-magenta">
-        <div className="flex items-center gap-2">
+      <div className="p-2.5 bg-synth-gray flex flex-col gap-2 border-t-2 border-synth-magenta">
+        <div className="w-full flex items-center gap-2">
           <label htmlFor="track-select" className="sr-only">Select Track</label>
           <select
             id="track-select"
             value={currentTrack}
             onChange={handleTrackChange}
-            className="bg-synth-dark text-synth-yellow font-pixel text-[9px] p-2 border-2 border-synth-yellow focus:outline-none"
+            className="flex-1 min-w-0 w-full bg-synth-dark text-synth-yellow font-pixel text-[9px] p-2 border-2 border-synth-yellow focus:outline-none truncate"
           >
             {TRACK_LIST.map((t) => (
               <option key={t.id} value={t.id}>
@@ -320,7 +320,7 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = () => {
 
           <button
             onClick={handleTogglePlay}
-            className={`pixel-btn px-4 py-1.5 font-pixel text-[10px] flex items-center gap-1.5 ${
+            className={`pixel-btn px-4 py-2 font-pixel text-[10px] flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer ${
               isPlaying ? 'bg-synth-magenta text-white' : 'bg-synth-yellow text-synth-dark'
             }`}
           >
@@ -339,8 +339,8 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = () => {
         </div>
 
         {/* Volume slider */}
-        <div className="flex items-center gap-2">
-          <Volume2 className="w-4 h-4 text-synth-cyan" />
+        <div className="w-full flex items-center justify-end gap-2 pt-0.5">
+          <Volume2 className="w-4 h-4 text-synth-cyan shrink-0" />
           <label htmlFor="volume-slider" className="sr-only">Volume Slider</label>
           <input
             id="volume-slider"
@@ -350,10 +350,10 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = () => {
             step="0.05"
             value={volume}
             onChange={handleVolumeChange}
-            className="w-20 accent-synth-magenta cursor-pointer"
+            className="w-24 sm:w-32 accent-synth-magenta cursor-pointer"
             title={`Volume: ${Math.round(volume * 100)}%`}
           />
-          <span className="font-pixel text-[8px] text-gray-400 w-8 text-right">
+          <span className="font-pixel text-[8px] text-gray-400 w-8 text-right shrink-0">
             {Math.round(volume * 100)}%
           </span>
         </div>
@@ -470,9 +470,11 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = () => {
                 <Sparkles className="w-3.5 h-3.5 text-synth-yellow" />
                 <span>SOUNDBANK CASSETTE TAPES (SELECT TRACK TO LOAD):</span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {TRACK_LIST.map((t) => {
                   const isCurrent = currentTrack === t.id;
+                  const isThisPlaying = isCurrent && isPlaying;
+
                   return (
                     <div
                       key={t.id}
@@ -484,32 +486,126 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = () => {
                           musicEngine.play();
                         }
                       }}
-                      className={`p-3 border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                      className={`relative rounded-md p-3.5 transition-all flex flex-col justify-between cursor-pointer select-none bg-[#14121d] border-t-2 border-l-2 border-zinc-600 border-b-4 border-r-4 border-black shadow-[4px_4px_0px_#0a0015] ${
                         isCurrent
-                          ? 'border-synth-yellow bg-synth-purple/70 shadow-[3px_3px_0_#ff2a6d]'
-                          : 'border-gray-700 bg-synth-gray/70 hover:border-synth-cyan'
+                          ? 'ring-2 ring-synth-yellow shadow-[0_0_14px_rgba(251,229,79,0.35)]'
+                          : 'hover:border-zinc-400'
                       }`}
                     >
-                      <div>
-                        <div className="flex justify-between items-start mb-1">
-                          <div className="font-pixel text-[10px] text-synth-yellow flex items-center gap-1.5">
-                            <Disc className={`w-3.5 h-3.5 ${isCurrent && isPlaying ? 'animate-spin text-synth-magenta' : 'text-gray-500'}`} />
-                            <span>{t.name.toUpperCase()}</span>
-                          </div>
-                          <span className="font-pixel text-[8px] text-synth-cyan bg-synth-dark px-1.5 py-0.5 border border-synth-cyan/40">
-                            {t.bpm} BPM
-                          </span>
-                        </div>
-                        <div className="font-pixel text-[8px] text-synth-magenta mb-1">
-                          GENRE: {t.genre.toUpperCase()}
-                        </div>
-                        <div className="font-vt text-base text-gray-300 leading-tight">
-                          {t.description}
+                      {/* Corner Screws */}
+                      <div className="absolute top-1.5 left-1.5 w-2 h-2 rounded-full bg-zinc-600 border border-zinc-900 flex items-center justify-center text-[7px] text-zinc-400 font-mono leading-none">
+                        +
+                      </div>
+                      <div className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-zinc-600 border border-zinc-900 flex items-center justify-center text-[7px] text-zinc-400 font-mono leading-none">
+                        +
+                      </div>
+                      <div className="absolute bottom-1.5 left-1.5 w-2 h-2 rounded-full bg-zinc-600 border border-zinc-900 flex items-center justify-center text-[7px] text-zinc-400 font-mono leading-none">
+                        +
+                      </div>
+                      <div className="absolute bottom-1.5 right-1.5 w-2 h-2 rounded-full bg-zinc-600 border border-zinc-900 flex items-center justify-center text-[7px] text-zinc-400 font-mono leading-none">
+                        +
+                      </div>
+
+                      {/* Top Cassette Ridge / Header */}
+                      <div className="flex justify-between items-center px-2 mb-1.5 text-[8px] font-pixel text-zinc-400">
+                        <span className="tracking-widest">SIDE A</span>
+                        <div className="flex items-center gap-1">
+                          <span className={`w-1.5 h-1.5 rounded-full ${isThisPlaying ? 'bg-synth-magenta animate-pulse' : 'bg-zinc-600'}`} />
+                          <span className="text-zinc-500 font-mono">C-60</span>
                         </div>
                       </div>
-                      <div className="mt-2 pt-2 border-t border-gray-800 flex justify-between items-center text-[8px] font-pixel text-gray-400">
-                        <span>{isCurrent && isPlaying ? 'PLAYING NOW' : isCurrent ? 'LOADED' : 'CLICK TO LOAD'}</span>
-                        <span className="text-synth-cyan">4-VOICE POLY</span>
+
+                      {/* Cassette Tape Sticker with Written Song Name */}
+                      <div className="bg-[#f2ece2] rounded-xs border-2 border-zinc-400 p-2 shadow-inner relative overflow-hidden">
+                        {/* Retro 80s stripes on sticker */}
+                        <div className="h-1 w-full bg-gradient-to-r from-synth-magenta via-synth-yellow to-synth-cyan mb-1.5" />
+                        
+                        {/* Written Song Name */}
+                        <div className="border-b border-dashed border-zinc-400 pb-1 text-center">
+                          <span className="font-pixel text-[11px] sm:text-xs text-zinc-900 font-bold tracking-wider uppercase block truncate drop-shadow-[0_1px_0_rgba(255,255,255,0.8)]">
+                            {t.name}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Cassette Tape Reel Window with Two Circle Spools */}
+                      <div className="bg-zinc-950 border-2 border-zinc-800 rounded-sm py-2 px-3 flex items-center justify-between my-2.5 relative shadow-inner overflow-hidden">
+                        {/* Left Reel Spool */}
+                        <div
+                          className={`w-9 h-9 rounded-full bg-zinc-200 border-2 border-zinc-700 flex items-center justify-center relative shadow-md shrink-0 ${
+                            isThisPlaying ? 'animate-spin' : ''
+                          }`}
+                          style={{ animationDuration: '3s' }}
+                        >
+                          <div className="w-6 h-6 rounded-full border-2 border-dashed border-zinc-900 bg-zinc-300 flex items-center justify-center">
+                            <div className="w-2.5 h-2.5 rounded-full bg-zinc-950 border border-zinc-600" />
+                          </div>
+                        </div>
+
+                        {/* Center Magnetic Tape Strip with Ruler Scale */}
+                        <div className="flex-1 mx-2 h-4 bg-[#2b180d] rounded-xs relative flex items-center justify-center border-y border-zinc-800">
+                          <div className="text-[7px] font-mono text-zinc-500 tracking-widest select-none opacity-70">
+                            |&bull;|&bull;|&bull;|
+                          </div>
+                        </div>
+
+                        {/* Right Reel Spool */}
+                        <div
+                          className={`w-9 h-9 rounded-full bg-zinc-200 border-2 border-zinc-700 flex items-center justify-center relative shadow-md shrink-0 ${
+                            isThisPlaying ? 'animate-spin' : ''
+                          }`}
+                          style={{ animationDuration: '3s' }}
+                        >
+                          <div className="w-6 h-6 rounded-full border-2 border-dashed border-zinc-900 bg-zinc-300 flex items-center justify-center">
+                            <div className="w-2.5 h-2.5 rounded-full bg-zinc-950 border border-zinc-600" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Old-School 3D Play & Pause Buttons */}
+                      <div className="flex items-center justify-center gap-3 pt-1 border-t border-zinc-800">
+                        {/* 3D PLAY Button */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            sfx.playClick();
+                            if (isThisPlaying) return;
+                            setCurrentTrack(t.id);
+                            musicEngine.changeTrack(t.id);
+                            musicEngine.play();
+                          }}
+                          className={`px-3 py-1 font-pixel text-[9px] flex items-center gap-1.5 transition-all cursor-pointer ${
+                            isThisPlaying
+                              ? 'bg-zinc-950 text-synth-cyan border-t-2 border-l-2 border-black border-b border-r border-zinc-700 shadow-inner translate-y-0.5'
+                              : 'bg-gradient-to-b from-zinc-600 to-zinc-800 text-white border-t-2 border-l-2 border-zinc-400 border-b-2 border-r-2 border-black shadow-[2px_2px_0px_#000] hover:brightness-110 active:translate-y-0.5'
+                          }`}
+                          title="Play Cassette"
+                        >
+                          <Play className="w-3 h-3 fill-current" />
+                          <span>PLAY</span>
+                        </button>
+
+                        {/* 3D PAUSE Button */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            sfx.playClick();
+                            if (isThisPlaying) {
+                              musicEngine.stop();
+                            }
+                          }}
+                          className={`px-3 py-1 font-pixel text-[9px] flex items-center gap-1.5 transition-all cursor-pointer ${
+                            isCurrent && !isPlaying
+                              ? 'bg-zinc-950 text-synth-yellow border-t-2 border-l-2 border-black border-b border-r border-zinc-700 shadow-inner translate-y-0.5'
+                              : 'bg-gradient-to-b from-zinc-600 to-zinc-800 text-white border-t-2 border-l-2 border-zinc-400 border-b-2 border-r-2 border-black shadow-[2px_2px_0px_#000] hover:brightness-110 active:translate-y-0.5'
+                          }`}
+                          title="Pause Cassette"
+                        >
+                          <Pause className="w-3 h-3 fill-current" />
+                          <span>PAUSE</span>
+                        </button>
                       </div>
                     </div>
                   );

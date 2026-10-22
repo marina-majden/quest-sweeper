@@ -186,46 +186,46 @@ export const HallOfFameView: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
               {/* Badge 1 */}
               <div className="bg-synth-gray/40 border border-gray-700 p-3 flex flex-col items-center justify-between text-center rounded-sm">
-                <TrophyBadge badgeIndex={1} letter="1SG" />
+                <TrophyBadge badgeIndex={1} letter="C" />
                 <div className="mt-2">
-                  <span className="font-pixel text-[8px] text-gray-300 block">TIER 1 • PATROL</span>
+                  <span className="font-pixel text-[8px] text-gray-300 block">GRADE C • PATROL</span>
                   <span className="font-vt text-sm text-gray-400">Daily Sorties</span>
                 </div>
               </div>
 
               {/* Badge 2 */}
               <div className="bg-synth-gray/40 border border-gray-700 p-3 flex flex-col items-center justify-between text-center rounded-sm">
-                <TrophyBadge badgeIndex={2} letter="SPC" />
+                <TrophyBadge badgeIndex={2} letter="B" />
                 <div className="mt-2">
-                  <span className="font-pixel text-[8px] text-synth-cyan block">TIER 2 • SPECIALIST</span>
+                  <span className="font-pixel text-[8px] text-synth-cyan block">GRADE B • SPECIALIST</span>
                   <span className="font-vt text-sm text-gray-400">Side Target Zones</span>
                 </div>
               </div>
 
               {/* Badge 3 */}
               <div className="bg-synth-gray/40 border border-gray-700 p-3 flex flex-col items-center justify-between text-center rounded-sm">
-                <TrophyBadge badgeIndex={3} letter="HVC" />
+                <TrophyBadge badgeIndex={3} letter="S" />
                 <div className="mt-2">
-                  <span className="font-pixel text-[8px] text-synth-magenta block">TIER 3 • SPECIAL OPS</span>
+                  <span className="font-pixel text-[8px] text-synth-magenta block">RANK S • SPECIAL OPS</span>
                   <span className="font-vt text-sm text-gray-400">Epic Boss Battles</span>
                 </div>
               </div>
 
               {/* Badge 4 */}
               <div className="bg-synth-gray/40 border border-gray-700 p-3 flex flex-col items-center justify-between text-center rounded-sm">
-                <TrophyBadge badgeIndex={4} letter="COL" />
+                <TrophyBadge badgeIndex={4} letter="A" />
                 <div className="mt-2">
-                  <span className="font-pixel text-[8px] text-synth-yellow block">TIER 4 • SUPREME</span>
+                  <span className="font-pixel text-[8px] text-synth-yellow block">GRADE A • SUPREME</span>
                   <span className="font-vt text-sm text-gray-400">Main Quests</span>
                 </div>
               </div>
 
               {/* Badge 5 (Double Ribbon) */}
               <div className="bg-synth-yellow/10 border-2 border-synth-yellow p-3 flex flex-col items-center justify-between text-center rounded-sm shadow-[0_0_12px_rgba(252,200,56,0.3)]">
-                <TrophyBadge badgeIndex={5} letter="GEN" />
+                <TrophyBadge badgeIndex={5} letter="G" />
                 <div className="mt-2">
-                  <span className="font-pixel text-[8px] text-synth-yellow block font-bold">DOUBLE RIBBON</span>
-                  <span className="font-vt text-sm text-synth-cyan">100% Top Cleared</span>
+                  <span className="font-pixel text-[8px] text-synth-yellow block font-bold">RANK G • PINNACLE</span>
+                  <span className="font-vt text-sm text-synth-cyan">General 100% Cleared</span>
                 </div>
               </div>
             </div>

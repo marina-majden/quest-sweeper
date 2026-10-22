@@ -1,6 +1,5 @@
 /**
  * Web Audio Chiptune Synthesizer & Sound FX Engine
- * Completely offline, zero external audio asset dependencies!
  */
 
 export class SoundFXEngine {
@@ -197,6 +196,10 @@ export class SoundFXEngine {
 
 export const sfx = new SoundFXEngine();
 
+import cleaninParkUrl from '../assets/music/CleaninPark.mp3';
+import midnightCleanersUrl from '../assets/music/MidnightCleaners.mp3';
+import zenJungleUrl from '../assets/music/ZenJungle.mp3';
+
 export type TrackId = 'neon-sweeper' | 'midnight-lofi' | 'zen-ambient' | 'boss-battle';
 
 export interface TrackMeta {
@@ -212,31 +215,38 @@ export const TRACK_LIST: TrackMeta[] = [
     id: 'neon-sweeper',
     name: 'Neon Sweeper',
     genre: 'Synthwave 80s',
-    bpm: 140,
+    bpm: 136,
     description: 'Energetic driving synthwave with punchy bassline & retro lead melody',
   },
   {
     id: 'midnight-lofi',
     name: 'Midnight Cleaners',
-    genre: 'Lo-Fi Chillhop',
-    bpm: 96,
+    genre: 'Lo-Fi Retro',
+    bpm: 115,
     description: 'Relaxed cyber-lofi chords with gentle vinyl warmth & soft bells',
   },
   {
     id: 'zen-ambient',
-    name: 'Zen Temple Vacuum',
-    genre: 'Ambient Meditative',
-    bpm: 72,
-    description: 'Dreamy pentatonic atmosphere with soothing soundscape chords',
+    name: 'Deep House Cleaning',
+    genre: 'Ambient Downtempo',
+    bpm: 98,
+    description: 'Warm and comforting atmosphere with natural rhythms',
   },
   {
     id: 'boss-battle',
-    name: 'Groutzilla Clash',
+    name: 'Cleanin Park',
     genre: '8-Bit Fast Rock',
-    bpm: 156,
+    bpm: 142,
     description: 'Adrenaline-packed combat chiptune for slaying stubborn dirt',
   },
 ];
+
+export const TRACK_AUDIO_MAP: Record<TrackId, string | null> = {
+  'neon-sweeper': null,
+  'midnight-lofi': midnightCleanersUrl,
+  'zen-ambient': zenJungleUrl,
+  'boss-battle': cleaninParkUrl,
+};
 
 export class MusicEngine {
   private ctx: AudioContext | null = null;
@@ -247,6 +257,8 @@ export class MusicEngine {
   public volume: number = 0.4;
   private timer: number | null = null;
   private onStateChangeListeners: ((playing: boolean) => void)[] = [];
+  private audioElement: HTMLAudioElement | null = null;
+  private mediaSource: MediaElementAudioSourceNode | null = null;
 
   constructor() {}
 
@@ -275,6 +287,17 @@ export class MusicEngine {
         this.analyser.connect(this.ctx.destination);
       }
     }
+    if (this.ctx && !this.audioElement) {
+      this.audioElement = new Audio();
+      this.audioElement.loop = true;
+      this.audioElement.crossOrigin = 'anonymous';
+      try {
+        this.mediaSource = this.ctx.createMediaElementSource(this.audioElement);
+        this.mediaSource.connect(this.masterGain!);
+      } catch (err) {
+        console.warn('Error connecting media element to audio context:', err);
+      }
+    }
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume().catch(() => {});
     }
@@ -298,15 +321,26 @@ export class MusicEngine {
   }
 
   public changeTrack(trackId: TrackId) {
+    const wasPlaying = this.isPlaying;
     this.currentTrack = trackId;
-    if (this.isPlaying) {
-      this.stop();
+    if (this.audioElement) {
+      this.audioElement.pause();
+      this.audioElement.currentTime = 0;
+    }
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+    if (wasPlaying) {
       this.play();
     }
   }
 
   public stop() {
     this.isPlaying = false;
+    if (this.audioElement) {
+      this.audioElement.pause();
+    }
     if (this.timer) {
       clearInterval(this.timer);
       this.timer = null;
@@ -320,6 +354,32 @@ export class MusicEngine {
     this.isPlaying = true;
     this.notify();
 
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+
+    const mp3Url = TRACK_AUDIO_MAP[this.currentTrack];
+    if (mp3Url && this.audioElement) {
+      if (!this.audioElement.src || !this.audioElement.src.includes(mp3Url)) {
+        this.audioElement.src = mp3Url;
+        this.audioElement.load();
+      }
+      this.audioElement
+        .play()
+        .catch((err) => {
+          console.warn('MP3 playback failed, falling back to synth chiptune:', err);
+          this.playSynth();
+        });
+    } else {
+      if (this.audioElement) {
+        this.audioElement.pause();
+      }
+      this.playSynth();
+    }
+  }
+
+  private playSynth() {
     let step = 0;
     const meta = TRACK_LIST.find((t) => t.id === this.currentTrack) || TRACK_LIST[0];
     const msPer16th = (60000 / meta.bpm) / 4;

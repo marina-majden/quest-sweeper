@@ -19,7 +19,7 @@ import {
   ExternalLink,
   X,
 } from 'lucide-react';
-import { getBadgeTierIndex, loadBadgeImage, TrophyBadge } from './TrophyBadges.tsx';
+import { getBadgeTierIndex, getSingleBadgeLetter, loadBadgeImage, TrophyBadge } from './TrophyBadges.tsx';
 
 interface QuestCelebrateViewProps {
   score: number;
@@ -86,12 +86,22 @@ export const QuestCelebrateView: React.FC<QuestCelebrateViewProps> = ({
     isSpeedrunSuccess: militaryRank.isSuccess,
   });
 
+  // Single big letter for badge: 'G' for General / Best completion, 'S' for Special forces / speedrun win, 'A'/'B'/'C' for grades
+  const badgeLetter = getSingleBadgeLetter({
+    badgeIndex,
+    difficulty,
+    gameMode,
+    completedTasks,
+    totalTasks,
+    isSpeedrunSuccess: militaryRank.isSuccess,
+  });
+
   const [badgeImage, setBadgeImage] = useState<HTMLImageElement | null>(null);
 
   // Load badge image asynchronously for canvas rendering
   useEffect(() => {
     let active = true;
-    loadBadgeImage(badgeIndex, militaryRank.rankAbbr)
+    loadBadgeImage(badgeIndex, badgeLetter)
       .then((img) => {
         if (active) setBadgeImage(img);
       })
@@ -101,7 +111,7 @@ export const QuestCelebrateView: React.FC<QuestCelebrateViewProps> = ({
     return () => {
       active = false;
     };
-  }, [badgeIndex, militaryRank.rankAbbr]);
+  }, [badgeIndex, badgeLetter]);
 
   // Trigger confetti burst on mount
   useEffect(() => {
@@ -237,10 +247,10 @@ export const QuestCelebrateView: React.FC<QuestCelebrateViewProps> = ({
       ctx.lineWidth = 4;
       ctx.stroke();
 
-      ctx.font = '20px "Press Start 2P", monospace';
+      ctx.font = '24px "Press Start 2P", monospace';
       ctx.fillStyle = '#fbe54f';
       ctx.textAlign = 'center';
-      ctx.fillText(militaryRank.rankAbbr, w - 110, 192);
+      ctx.fillText(badgeLetter, w - 110, 192);
 
       ctx.font = '8px "Press Start 2P", monospace';
       ctx.fillStyle = '#ffffff';
@@ -428,7 +438,7 @@ export const QuestCelebrateView: React.FC<QuestCelebrateViewProps> = ({
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <TrophyBadge badgeIndex={badgeIndex} letter={militaryRank.rankAbbr} />
+            <TrophyBadge badgeIndex={badgeIndex} letter={badgeLetter} />
           </div>
         </div>
       </div>
@@ -464,7 +474,7 @@ export const QuestCelebrateView: React.FC<QuestCelebrateViewProps> = ({
         )}
       </div>
 
-      {/* CLEANQUEST CERTIFICATE TROPHY CARD (Yellow text removed) */}
+      {/* CLEANQUEST CERTIFICATE TROPHY CARD */}
       <div className="max-w-2xl mx-auto space-y-4 pt-2">
         {/* The Live Rendered Canvas */}
         <div className="flex justify-center">
@@ -474,20 +484,6 @@ export const QuestCelebrateView: React.FC<QuestCelebrateViewProps> = ({
             height={380}
             className="w-full max-w-[640px] h-auto border-4 border-synth-cyan shadow-[6px_6px_0_#ff2a6d] rounded-sm bg-black"
           />
-        </div>
-
-        {/* Link to the game */}
-        <div className="text-center font-pixel text-xs text-gray-300">
-          Play online at:{' '}
-          <a
-            href="https://questsweeper.netlify.app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-synth-cyan hover:text-synth-yellow underline cursor-pointer inline-flex items-center gap-1 font-bold transition-colors"
-          >
-            Cleanquest <ExternalLink className="w-3.5 h-3.5 inline" />
-          </a>{' '}
-          <span className="text-gray-400">(questsweeper.netlify.app)</span>
         </div>
 
         {/* Card Export Action Buttons: PNG removed, SHARE IMAGE opens social menu */}
