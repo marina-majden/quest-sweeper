@@ -196,12 +196,12 @@ export class SoundFXEngine {
 
 export const sfx = new SoundFXEngine();
 
+import neonSweeperUrl from "../assets/music/NeonSweeper.mp3";
 import cleaninParkUrl from '../assets/music/CleaninPark.mp3';
 import midnightCleanersUrl from '../assets/music/MidnightCleaners.mp3';
 import zenJungleUrl from '../assets/music/ZenJungle.mp3';
 
-export type TrackId = 'neon-sweeper' | 'midnight-lofi' | 'zen-ambient' | 'boss-battle';
-
+export type TrackId = 'neon-sweeper' | 'midnight-lofi' | 'zen-ambient' | "cleanin-park";
 export interface TrackMeta {
   id: TrackId;
   name: string;
@@ -233,7 +233,7 @@ export const TRACK_LIST: TrackMeta[] = [
     description: 'Warm and comforting atmosphere with natural rhythms',
   },
   {
-    id: 'boss-battle',
+    id: 'cleanin-park',
     name: 'Cleanin Park',
     genre: '8-Bit Fast Rock',
     bpm: 142,
@@ -242,10 +242,10 @@ export const TRACK_LIST: TrackMeta[] = [
 ];
 
 export const TRACK_AUDIO_MAP: Record<TrackId, string | null> = {
-  'neon-sweeper': null,
+  'neon-sweeper': neonSweeperUrl,
   'midnight-lofi': midnightCleanersUrl,
   'zen-ambient': zenJungleUrl,
-  'boss-battle': cleaninParkUrl,
+  'cleanin-park': cleaninParkUrl,
 };
 
 export class MusicEngine {
